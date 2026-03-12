@@ -1,14 +1,14 @@
 import { intro, note, outro, select, spinner } from '@clack/prompts';
 import { SUPER_ADMIN_USER_IDENTIFIER, SUPER_ADMIN_USER_PASSWORD } from '@vendure/common/lib/shared-constants';
 import { program } from 'commander';
-import { randomBytes } from 'crypto';
 import fs from 'fs-extra';
 import Handlebars from 'handlebars';
 import { ChildProcess, spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import os from 'node:os';
+import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import open from 'open';
-import os from 'os';
-import path from 'path';
 import pc from 'picocolors';
 
 import {
@@ -684,7 +684,7 @@ function displayOutro(outroOptions: OutroOptions) {
             pc.gray('$ ') + pc.blue(pc.bold(`cd ${name}`)),
             pc.gray('$ ') + pc.blue(pc.bold(`${startCommand}`)),
             `\n`,
-            `This will start both the server and storefront.`,
+            `This will start the server, dashboard & storefront.`,
             `\n`,
             `Access points:`,
             `  Dashboard:  ${pc.green(`http://localhost:${serverPort}/dashboard`)}`,
@@ -700,10 +700,7 @@ function displayOutro(outroOptions: OutroOptions) {
             pc.gray('$ ') + pc.blue(pc.bold(`cd ${name}`)),
             pc.gray('$ ') + pc.blue(pc.bold(`${startCommand}`)),
             `\n`,
-            `This will start the server in development mode.`,
-            `\n`,
-            `To run the Dashboard, in a new terminal navigate to your project directory and run:`,
-            pc.gray('$ ') + pc.blue(pc.bold(`npx vite`)),
+            `This will start the server & dashboard in development mode.`,
             `\n`,
             `To access the Dashboard, open your browser and navigate to:`,
             pc.green(`http://localhost:${serverPort}/dashboard`),

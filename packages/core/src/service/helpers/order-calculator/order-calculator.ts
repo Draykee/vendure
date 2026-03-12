@@ -62,8 +62,10 @@ export class OrderCalculator {
         // must be revalidated on any changes to an Order.
         order.promotions = [];
         const zones = await this.zoneService.getAllWithMembers(ctx);
-        const activeTaxZone = await this.requestContextCache.get(ctx, CacheKey.ActiveTaxZone, () =>
-            taxZoneStrategy.determineTaxZone(ctx, zones, ctx.channel, order),
+        const activeTaxZone = await this.requestContextCache.get(
+            ctx,
+            CacheKey.ActiveTaxZone(ctx.channelId),
+            () => taxZoneStrategy.determineTaxZone(ctx, zones, ctx.channel, order),
         );
 
         let taxZoneChanged = false;
@@ -312,7 +314,8 @@ export class OrderCalculator {
                 shippingLine?.shippingMethodId &&
                 (await this.shippingMethodService.findOne(ctx, shippingLine.shippingMethodId));
             if (!currentShippingMethod) {
-                return;
+                order.shippingLines = order.shippingLines.filter(sl => sl !== shippingLine);
+                continue;
             }
             const currentMethodStillEligible = await currentShippingMethod.test(ctx, order);
             if (currentMethodStillEligible) {
