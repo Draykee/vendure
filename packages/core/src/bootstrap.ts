@@ -27,6 +27,7 @@ import { BootstrappedEvent } from './event-bus/events/bootstrapped-event';
 import { getCompatibility, getConfigurationFunction, getEntitiesFromPlugins } from './plugin/plugin-metadata';
 import { getPluginStartupMessages } from './plugin/plugin-utils';
 import { setProcessContext } from './process-context/process-context';
+import { isTelemetryDisabled } from './telemetry/helpers/is-telemetry-disabled.helper';
 import { VENDURE_VERSION } from './version';
 import { VendureWorker } from './worker/vendure-worker';
 
@@ -71,6 +72,35 @@ export interface BootstrapOptions {
      * @since 3.1.0
      */
     ignoreCompatibilityErrorsForPlugins?: Array<DynamicModule | Type<any>>;
+
+    /**
+     * @description
+     * A function which is called before the app starts listening. This can be used to perform any final configuration of the Nest application.
+     * E.g., to set up OpenAPI specification with Swagger.
+     *
+     * @example
+     * ```ts
+     * import { bootstrap } from '\@vendure/core';
+     * import { config } from './vendure-config';
+     * import { SwaggerModule, DocumentBuilder } from '\@nestjs/swagger';
+     *
+     * bootstrap(config, {
+     *  onBeforeAppListen: async (app) => {
+     *    const config = new DocumentBuilder()
+     *      .setTitle('Cats example')
+     *      .setDescription('The cats API description')
+     *      .setVersion('1.0')
+     *      .addTag('cats')
+     *      .build();
+     *    const documentFactory = () => SwaggerModule.createDocument(app, config);
+     *    SwaggerModule.setup('api', app, documentFactory);
+     *  }
+     * });
+     * ```
+     * @default undefined
+     * @since 3.6.0
+     */
+    onBeforeAppListen?: (app: INestApplication) => void | Promise<void>;
 }
 
 /**
@@ -191,6 +221,7 @@ export async function bootstrap(
     earlyMiddlewares.forEach(mid => {
         app.use(mid.route, mid.handler);
     });
+    await options?.onBeforeAppListen?.(app);
     await app.listen(port, hostname || '');
     app.enableShutdownHooks();
     logWelcomeMessage(config);
@@ -202,7 +233,7 @@ export async function bootstrap(
  * @description
  * Bootstraps a Vendure worker. Resolves to a {@link VendureWorker} object containing a reference to the underlying
  * NestJs [standalone application](https://docs.nestjs.com/standalone-applications) as well as convenience
- * methods for starting the job queue and health check server.
+ * methods for starting the job queue.
  *
  * Read more about the [Vendure Worker](/developer-guide/worker-job-queue/).
  *
@@ -213,7 +244,6 @@ export async function bootstrap(
  *
  * bootstrapWorker(config)
  *   .then(worker => worker.startJobQueue())
- *   .then(worker => worker.startHealthCheckServer({ port: 3020 }))
  *   .catch(err => {
  *     console.log(err);
  *     process.exit(1);
@@ -411,6 +441,12 @@ function logWelcomeMessage(config: RuntimeVendureConfig) {
     Logger.info('-'.repeat(maxLineLength).padStart(titlePadLength));
     columnarGreetings.forEach(line => Logger.info(line));
     Logger.info('='.repeat(maxLineLength));
+    if (isTelemetryDisabled()) {
+        Logger.info('Anonymous telemetry is disabled.');
+    } else {
+        Logger.info('Anonymous telemetry is enabled to help us improve Vendure.');
+        Logger.info('To disable, set VENDURE_DISABLE_TELEMETRY=true.');
+    }
 }
 
 function arrangeCliGreetingsInColumns(lines: Array<readonly [string, string]>): string[] {

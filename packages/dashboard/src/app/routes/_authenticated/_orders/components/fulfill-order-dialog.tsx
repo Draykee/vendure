@@ -292,7 +292,9 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
                                     render={({ field }) => (
                                         <ConfigurableOperationInput
                                             operationDefinition={selectedHandler}
-                                            value={field.value}
+                                            value={
+                                                field.value ?? { code: selectedHandler.code, arguments: [] }
+                                            }
                                             onChange={field.onChange}
                                             readonly={false}
                                             removable={false}

@@ -133,8 +133,14 @@ jobs:
             contents: read
         services:
             elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
                 env:
+                    node.name: es
+                    cluster.name: es-docker-cluster
+                    xpack.security.enabled: false
+                    xpack.security.http.ssl.enabled: false
+                    xpack.security.transport.ssl.enabled: false
+                    xpack.license.self_generated.type: basic
                     discovery.type: single-node
                     bootstrap.memory_lock: true
                     ES_JAVA_OPTS: -Xms512m -Xmx512m
@@ -185,8 +191,14 @@ jobs:
                     - 3306
                 options: --health-cmd="mariadb-admin ping -h localhost -u vendure -ppassword" --health-interval=10s --health-timeout=5s --health-retries=3
             elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
                 env:
+                    node.name: es
+                    cluster.name: es-docker-cluster
+                    xpack.security.enabled: false
+                    xpack.security.http.ssl.enabled: false
+                    xpack.security.transport.ssl.enabled: false
+                    xpack.license.self_generated.type: basic
                     discovery.type: single-node
                     bootstrap.memory_lock: true
                     ES_JAVA_OPTS: -Xms512m -Xmx512m
@@ -232,8 +244,14 @@ jobs:
                     - 3306
                 options: --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=20s --health-retries=10
             elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
                 env:
+                    node.name: es
+                    cluster.name: es-docker-cluster
+                    xpack.security.enabled: false
+                    xpack.security.http.ssl.enabled: false
+                    xpack.security.transport.ssl.enabled: false
+                    xpack.license.self_generated.type: basic
                     discovery.type: single-node
                     bootstrap.memory_lock: true
                     ES_JAVA_OPTS: -Xms512m -Xmx512m
@@ -280,8 +298,14 @@ jobs:
                     - 5432
                 options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
             elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
                 env:
+                    node.name: es
+                    cluster.name: es-docker-cluster
+                    xpack.security.enabled: false
+                    xpack.security.http.ssl.enabled: false
+                    xpack.security.transport.ssl.enabled: false
+                    xpack.license.self_generated.type: basic
                     discovery.type: single-node
                     bootstrap.memory_lock: true
                     ES_JAVA_OPTS: -Xms512m -Xmx512m

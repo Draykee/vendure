@@ -6,11 +6,11 @@ import { addCustomFields } from '@/vdb/framework/document-introspection/add-cust
 import {
     Page,
     PageActionBar,
-    PageActionBarRight,
     PageBlock,
     PageLayout,
     PageTitle,
 } from '@/vdb/framework/layout-engine/page-layout.js';
+import { ActionBarItem } from '@/vdb/framework/layout-engine/action-bar-item-wrapper.js';
 import { useDetailPage } from '@/vdb/framework/page/use-detail-page.js';
 import { api } from '@/vdb/graphql/api.js';
 import { useCustomFieldConfig } from '@/vdb/hooks/use-custom-field-config.js';
@@ -186,44 +186,42 @@ export function OrderDetailShared({
     return (
         <Page pageId={pageId} form={form} submitHandler={submitHandler} entity={entity}>
             <PageTitle>{titleSlot?.(entity) || <DefaultOrderTitle entity={entity} />}</PageTitle>
-            <PageActionBar>
-                <PageActionBarRight
+            <PageActionBar
                     dropdownMenuItems={[
                         ...(nextStates.includes('Modifying') ? [{ component: ModifyMenuItem }] : []),
                         ...(showRefundOption ? [{ component: RefundMenuItem }] : []),
                     ]}
                 >
-                    {showAddPaymentButton && (
-                        <PermissionGuard requires={['UpdateOrder']}>
-                            <AddManualPaymentDialog
-                                order={entity}
-                                onSuccess={() => {
-                                    void refreshPage();
-                                }}
-                            />
-                        </PermissionGuard>
-                    )}
-                    {showFulfillButton && (
-                        <PermissionGuard requires={['UpdateOrder']}>
-                            <FulfillOrderDialog
-                                order={entity}
-                                onSuccess={() => {
-                                    void refreshPage();
-                                }}
-                            />
-                        </PermissionGuard>
-                    )}
-                </PageActionBarRight>
+                {showAddPaymentButton && (
+                    <ActionBarItem itemId="add-payment-button" requiresPermission={['UpdateOrder']}>
+                        <AddManualPaymentDialog
+                            order={entity}
+                            onSuccess={() => {
+                                refreshEntity();
+                            }}
+                        />
+                    </ActionBarItem>
+                )}
+                {showFulfillButton && (
+                    <ActionBarItem itemId="fulfill-order-button" requiresPermission={['UpdateOrder']}>
+                        <FulfillOrderDialog
+                            order={entity}
+                            onSuccess={() => {
+                                void refreshPage();
+                            }}
+                        />
+                    </ActionBarItem>
+                )}
+                {showRefundOption && (
+                    <RefundOrderDialog
+                        ref={refundDialogRef}
+                        order={entity}
+                        onSuccess={() => {
+                            void refreshPage();
+                        }}
+                    />
+                )}
             </PageActionBar>
-            {showRefundOption && (
-                <RefundOrderDialog
-                    ref={refundDialogRef}
-                    order={entity}
-                    onSuccess={() => {
-                        void refreshPage();
-                    }}
-                />
-            )}
             <PageLayout>
                 {/* Main Column Blocks */}
                 {beforeOrderTable?.(entity)}
