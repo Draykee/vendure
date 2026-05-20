@@ -1188,6 +1188,17 @@ export const deleteCustomerNoteDocument = graphql(`
     }
 `);
 
+export const verifyCustomerAccountDocument = graphql(
+    `
+        mutation VerifyCustomerAccount($id: ID!) {
+            verifyCustomerAccount(id: $id) {
+                ...Customer
+            }
+        }
+    `,
+    [customerFragment],
+);
+
 export const updateCustomerGroupDocument = graphql(
     `
         mutation UpdateCustomerGroup($input: UpdateCustomerGroupInput!) {
