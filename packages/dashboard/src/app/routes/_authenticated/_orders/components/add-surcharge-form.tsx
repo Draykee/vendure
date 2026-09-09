@@ -94,7 +94,7 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
                 price: Number(values.price), // already in minor units from MoneyInput
                 priceIncludesTax: values.priceIncludesTax,
                 taxRate: values.taxRate ?? undefined,
-                taxDescription: values.taxDescription?.trim() || undefined,
+                taxDescription: values.taxDescription || undefined,
             });
             surchargeForm.reset();
         })();
@@ -162,7 +162,11 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
                                 // Picking an existing description adopts its rate too. The
                                 // tax summary groups by description and rate, so keeping the
                                 // form's rate would still split the tax line in two.
-                                onSelectItem={item => surchargeForm.setValue('taxRate', item.taxRate)}
+                                onSelectItem={item =>
+                                    surchargeForm.setValue('taxRate', item.taxRate, {
+                                        shouldValidate: true,
+                                    })
+                                }
                                 items={taxDescriptionItems}
                             />
                         )}

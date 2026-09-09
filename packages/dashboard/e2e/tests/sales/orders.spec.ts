@@ -539,20 +539,26 @@ test.describe('Orders', () => {
             await expect(page.getByText(description)).toBeVisible();
         };
 
-        await expect(taxRateInput).toHaveValue('0');
+        const addSurchargeButton = surchargeBlock.getByRole('button', { name: 'Add surcharge' });
+        await surchargeBlock.getByRole('textbox', { name: 'Description' }).fill('Handling fee');
+        await surchargeBlock.getByRole('textbox', { name: 'Price' }).fill('10.00');
+        await taxRateInput.fill('101');
+        await expect(addSurchargeButton).toBeDisabled();
         await taxDescriptionInput.click();
         await suggestion(seededTaxDescription).click();
         await expect(taxDescriptionInput).toHaveValue(seededTaxDescription);
         // Picking a description adopts the rate it is charged at. The tax summary groups by
         // description and rate, so leaving the form's rate would split the tax line anyway.
         await expect(taxRateInput).toHaveValue('20');
+        // Selecting the valid rate must clear an existing validation error immediately.
+        await expect(addSurchargeButton).toBeEnabled();
 
         // Free text wins over the selection: a custom description must survive the popup
         // closing, instead of snapping back to the description that was picked.
-        await taxDescriptionInput.fill('Custom tax description');
+        await taxDescriptionInput.fill(' Custom tax description ');
         await taxDescriptionInput.press('Escape');
         await taxDescriptionInput.blur();
-        await expect(taxDescriptionInput).toHaveValue('Custom tax description');
+        await expect(taxDescriptionInput).toHaveValue(' Custom tax description ');
 
         await addSurcharge('Handling fee');
 
@@ -561,9 +567,13 @@ test.describe('Orders', () => {
         // is not yet on the order. Nothing on the page renders taxDescription directly.
         await taxDescriptionInput.click();
         await expect(suggestion('Custom tax description')).toBeVisible();
+        await suggestion('Custom tax description').click();
+        // Existing descriptions are exact grouping keys, including significant whitespace.
+        await expect(taxDescriptionInput).toHaveValue(' Custom tax description ');
 
         // Reuse the seeded description on a second surcharge: it must not then be
         // suggested twice, once from the tax summary and once from the pending surcharge.
+        await taxDescriptionInput.fill(seededTaxDescription);
         await suggestion(seededTaxDescription).click();
         // A picked description stays browsable: the list is not narrowed to the pick, so
         // the admin can reopen and switch to another description.
