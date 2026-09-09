@@ -55,6 +55,14 @@ import {
 
 const pageId = 'customer-detail';
 
+/**
+ * The `message` of a PasswordValidationError is the generic "Password is invalid"; the configured
+ * policy that the password actually broke is in `validationErrorMessage`.
+ */
+function errorResultDescription(result: { message: string; validationErrorMessage?: string }): string {
+    return result.validationErrorMessage ?? result.message;
+}
+
 export const Route = createFileRoute('/_authenticated/_customers/customers_/$id')({
     component: CustomerDetailPage,
     loader: detailPageRouteLoader({
@@ -119,7 +127,7 @@ function CustomerDetailPage() {
                 }
             } else {
                 toast.error(creatingNewEntity ? t`Failed to create customer` : t`Failed to update customer`, {
-                    description: data.message,
+                    description: errorResultDescription(data),
                 });
             }
         },
@@ -216,8 +224,7 @@ function CustomerDetailPage() {
                             render={({ field }) => <Input {...field} />}
                         />
                         {/* Not a FormFieldWrapper: the generated form is built from
-                            CreateCustomerInput, which has no password field. A rejected password comes
-                            back from the server as a PasswordValidationError. */}
+                            CreateCustomerInput, which has no password field. */}
                         {creatingNewEntity && (
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="new-customer-password">
@@ -327,10 +334,10 @@ function CustomerDetailPage() {
 /**
  * Verifies a Customer's account without the customer having to use a verification email.
  *
- * Whether a `password` is required depends on whether the Customer already has one, and the
- * Customer type carries nothing which says. So the field is optional and the server's answer is
- * what settles it: a `MissingPasswordError` or `PasswordAlreadySetError` is shown next to the
- * field with the dialog still open, rather than as a toast over a closed one.
+ * The `Customer` type has no field for whether a password is already set, which is what decides
+ * whether one has to be supplied here. So the field is optional, and the server returns a
+ * `MissingPasswordError` or a `PasswordAlreadySetError`, which the dialog shows next to the field
+ * with itself still open.
  */
 function VerifyAccountDialog({ customerId, onVerified }: { customerId: string; onVerified: () => void }) {
     const { t } = useLingui();
@@ -347,7 +354,7 @@ function VerifyAccountDialog({ customerId, onVerified }: { customerId: string; o
         mutationFn: api.mutate(verifyCustomerAccountDocument),
         onSuccess: ({ verifyCustomerAccount: result }: ResultOf<typeof verifyCustomerAccountDocument>) => {
             if (result.__typename !== 'Customer') {
-                setError(result.message);
+                setError(errorResultDescription(result));
                 return;
             }
             toast.success(t`Customer account verified`);

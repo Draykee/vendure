@@ -812,8 +812,9 @@ describe('Customer resolver', () => {
             expect(await getVerifiedHistoryEntryCount(unverifiedCustomerId)).toBe(0);
         });
 
-        it('verifies an unverified customer and sets the password', async () => {
-            expect(await getVerificationToken('unverified@test.com')).toEqual(expect.any(String));
+        it('verifies an unverified customer, sets the password and clears the pending token', async () => {
+            const pendingToken = await getVerificationToken('unverified@test.com');
+            expect(pendingToken).toBeTruthy();
 
             const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
                 id: unverifiedCustomerId,
@@ -822,18 +823,13 @@ describe('Customer resolver', () => {
 
             customerErrorGuard.assertSuccess(verifyCustomerAccount);
             expect(verifyCustomerAccount.user!.verified).toBe(true);
-        });
 
-        // The pending token is what `refreshCustomerVerification` re-issues, so clearing it is what
-        // ends that flow for an account verified this way.
-        it('clears the pending verificationToken', async () => {
+            // The pending token is what `refreshCustomerVerification` re-issues, so clearing it is
+            // what ends that flow for an account verified this way.
             expect(await getVerificationToken('unverified@test.com')).toBeNull();
-        });
 
-        it('the verified customer can log in with the given password', async () => {
-            const result = await shopClient.asUserWithCredentials('unverified@test.com', 'test-password');
-
-            expect(result.identifier).toBe('unverified@test.com');
+            const login = await shopClient.asUserWithCredentials('unverified@test.com', 'test-password');
+            expect(login.identifier).toBe('unverified@test.com');
         });
 
         it('records a CUSTOMER_VERIFIED history entry', async () => {
@@ -888,6 +884,9 @@ describe('Customer resolver', () => {
             expect(eventFn).toHaveBeenCalledTimes(1);
             const published: AccountVerifiedEvent = eventFn.mock.calls[0][0];
             expect(published.customer.emailAddress).toBe('unverified2@test.com');
+            // The Customer is loaded before the User is saved, so this fails unless the saved User
+            // is written back onto it.
+            expect(published.customer.user!.verified).toBe(true);
             expect(published.ctx.apiType).toBe('admin');
 
             subscription.unsubscribe();
@@ -966,19 +965,16 @@ describe('Customer resolver', () => {
                 expect(verifyCustomerAccount.errorCode).toBe(ErrorCode.PASSWORD_ALREADY_SET_ERROR);
             });
 
-            it('verifies without a password', async () => {
+            it('verifies without a password, keeping the one chosen at registration', async () => {
                 const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
                     id: selfRegisteredCustomerId,
                 });
 
                 customerErrorGuard.assertSuccess(verifyCustomerAccount);
                 expect(verifyCustomerAccount.user!.verified).toBe(true);
-            });
 
-            it('can log in with the password chosen at registration', async () => {
-                const result = await shopClient.asUserWithCredentials(emailAddress, 'test-password');
-
-                expect(result.identifier).toBe(emailAddress);
+                const login = await shopClient.asUserWithCredentials(emailAddress, 'test-password');
+                expect(login.identifier).toBe(emailAddress);
             });
         });
     });

@@ -114,6 +114,9 @@ export const createCustomerDocument = graphql(`
                 errorCode
                 message
             }
+            ... on PasswordValidationError {
+                validationErrorMessage
+            }
         }
     }
 `);
@@ -156,6 +159,9 @@ export const verifyCustomerAccountDocument = graphql(`
             ... on ErrorResult {
                 errorCode
                 message
+            }
+            ... on PasswordValidationError {
+                validationErrorMessage
             }
         }
     }

@@ -220,27 +220,28 @@ export class CustomerDetailComponent
             customFields,
         };
         this.dataService.customer.createCustomer(customer, password).subscribe(({ createCustomer }) => {
-            switch (createCustomer.__typename) {
-                case 'Customer':
-                    this.notificationService.success(_('common.notify-create-success'), {
-                        entity: 'Customer',
-                    });
-                    if (createCustomer.emailAddress && !password) {
-                        this.notificationService.notify({
-                            message: _('customer.email-verification-sent'),
-                            translationVars: { emailAddress },
-                            type: 'info',
-                            duration: 10000,
-                        });
-                    }
-                    this.detailForm.markAsPristine();
-                    this.addressDefaultsUpdated = false;
-                    this.changeDetector.markForCheck();
-                    this.router.navigate(['../', createCustomer.id], { relativeTo: this.route });
-                    break;
-                case 'EmailAddressConflictError':
-                    this.notificationService.error(createCustomer.message);
+            if (createCustomer.__typename !== 'Customer') {
+                // EmailAddressConflictError and PasswordValidationError today. Reporting `message`
+                // covers both, and any member added to the union later. The cast is needed because
+                // the generated `__typename` is optional, so it does not narrow the union.
+                this.notificationService.error((createCustomer as any).message);
+                return;
             }
+            this.notificationService.success(_('common.notify-create-success'), {
+                entity: 'Customer',
+            });
+            if (createCustomer.emailAddress && !password) {
+                this.notificationService.notify({
+                    message: _('customer.email-verification-sent'),
+                    translationVars: { emailAddress },
+                    type: 'info',
+                    duration: 10000,
+                });
+            }
+            this.detailForm.markAsPristine();
+            this.addressDefaultsUpdated = false;
+            this.changeDetector.markForCheck();
+            this.router.navigate(['../', createCustomer.id], { relativeTo: this.route });
         });
     }
 

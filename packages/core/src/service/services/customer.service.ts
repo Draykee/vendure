@@ -3,7 +3,9 @@ import {
     RegisterCustomerAccountResult,
     RegisterCustomerInput,
     UpdateCustomerInput as UpdateCustomerShopInput,
-    VerifyCustomerAccountResult,
+    // Both APIs declare a `VerifyCustomerAccountResult`, with different members. Neither is
+    // imported under the bare name, so picking the wrong one here cannot compile.
+    VerifyCustomerAccountResult as VerifyCustomerAccountShopResult,
 } from '@vendure/common/lib/generated-shop-types';
 import {
     AddNoteToCustomerInput,
@@ -284,14 +286,7 @@ export class CustomerService {
         });
 
         if (customer.user?.verified) {
-            await this.historyService.createHistoryEntryForCustomer({
-                ctx,
-                customerId: createdCustomer.id,
-                type: HistoryEntryType.CUSTOMER_VERIFIED,
-                data: {
-                    strategy: NATIVE_AUTH_STRATEGY_NAME,
-                },
-            });
+            await this.createVerifiedHistoryEntry(ctx, createdCustomer.id);
         }
         await this.eventBus.publish(new CustomerEvent(ctx, createdCustomer, 'created', input));
         return createdCustomer;
@@ -514,14 +509,7 @@ export class CustomerService {
             // `requireVerification` setting).
             await this.eventBus.publish(new AccountRegistrationEvent(ctx, user));
         } else {
-            await this.historyService.createHistoryEntryForCustomer({
-                customerId: customer.id,
-                ctx,
-                type: HistoryEntryType.CUSTOMER_VERIFIED,
-                data: {
-                    strategy: NATIVE_AUTH_STRATEGY_NAME,
-                },
-            });
+            await this.createVerifiedHistoryEntry(ctx, customer.id);
         }
         return { success: true };
     }
@@ -548,7 +536,7 @@ export class CustomerService {
         ctx: RequestContext,
         verificationToken: string,
         password?: string,
-    ): Promise<ErrorResultUnion<VerifyCustomerAccountResult, Customer>> {
+    ): Promise<ErrorResultUnion<VerifyCustomerAccountShopResult, Customer>> {
         const result = await this.userService.verifyUserByToken(ctx, verificationToken, password);
         if (isGraphQlErrorResult(result)) {
             return result;
@@ -560,14 +548,7 @@ export class CustomerService {
         if (ctx.channelId) {
             await this.channelService.assignToChannels(ctx, Customer, customer.id, [ctx.channelId]);
         }
-        await this.historyService.createHistoryEntryForCustomer({
-            customerId: customer.id,
-            ctx,
-            type: HistoryEntryType.CUSTOMER_VERIFIED,
-            data: {
-                strategy: NATIVE_AUTH_STRATEGY_NAME,
-            },
-        });
+        await this.createVerifiedHistoryEntry(ctx, customer.id);
         const user = assertFound(this.findOneByUserId(ctx, result.id));
         await this.eventBus.publish(new AccountVerifiedEvent(ctx, customer));
         return user;
@@ -600,20 +581,27 @@ export class CustomerService {
         if (isGraphQlErrorResult(result)) {
             return result;
         }
-        // A Customer already verified by some other route keeps its original history entry and
-        // event: only the transition to verified is worth recording.
+        // `verifyUserWithoutToken` loads and saves a User of its own, so the relation loaded above
+        // still reads `verified: false`. Subscribers of the event below are handed this Customer, so
+        // it has to carry the saved User rather than the stale one.
+        customer.user = result;
+        // Re-running the mutation must not add a second history entry or publish a second event.
         if (!wasVerified) {
-            await this.historyService.createHistoryEntryForCustomer({
-                customerId: customer.id,
-                ctx,
-                type: HistoryEntryType.CUSTOMER_VERIFIED,
-                data: {
-                    strategy: NATIVE_AUTH_STRATEGY_NAME,
-                },
-            });
+            await this.createVerifiedHistoryEntry(ctx, customer.id);
             await this.eventBus.publish(new AccountVerifiedEvent(ctx, customer));
         }
         return assertFound(this.findOne(ctx, customer.id));
+    }
+
+    private async createVerifiedHistoryEntry(ctx: RequestContext, customerId: ID): Promise<void> {
+        await this.historyService.createHistoryEntryForCustomer({
+            customerId,
+            ctx,
+            type: HistoryEntryType.CUSTOMER_VERIFIED,
+            data: {
+                strategy: NATIVE_AUTH_STRATEGY_NAME,
+            },
+        });
     }
 
     /**

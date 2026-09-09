@@ -2868,7 +2868,7 @@ export type MissingConditionsError = ErrorResult & {
   message: Scalars['String']['output'];
 };
 
-/** Returned when attempting to verify a Customer account without a password, when one is required. */
+/** Returned when attempting to register or verify a customer account without a password, when one is required. */
 export type MissingPasswordError = ErrorResult & {
   __typename?: 'MissingPasswordError';
   errorCode: ErrorCode;
@@ -3292,10 +3292,9 @@ export type Mutation = {
    * Manually mark a Customer's email address as verified, without the Customer having to use a
    * verification email.
    *
-   * A Customer with no password set (as created by `createCustomer` without one) cannot log in, so
-   * for such a Customer the `password` argument is required and returns a `MissingPasswordError`
-   * when omitted. A Customer who already has a password is verified by omitting the argument;
-   * passing one returns a `PasswordAlreadySetError`.
+   * A Customer with no password set (as created by `createCustomer` without one) cannot log in.
+   * Omitting `password` for such a Customer returns a `MissingPasswordError`. Passing one for a
+   * Customer who already has a password returns a `PasswordAlreadySetError`.
    */
   verifyCustomerAccount: VerifyCustomerAccountResult;
 };
@@ -4642,7 +4641,7 @@ export type PaginatedList = {
   totalItems: Scalars['Int']['output'];
 };
 
-/** Returned when attempting to verify a Customer account with a password, when a password has already been set. */
+/** Returned when attempting to verify a customer account with a password, when a password has already been set. */
 export type PasswordAlreadySetError = ErrorResult & {
   __typename?: 'PasswordAlreadySetError';
   errorCode: ErrorCode;
@@ -4669,7 +4668,7 @@ export type PasswordResetTokenInvalidError = ErrorResult & {
   message: Scalars['String']['output'];
 };
 
-/** Returned when the given password fails password validation. */
+/** Returned when attempting to register or verify a customer account where the given password fails password validation. */
 export type PasswordValidationError = ErrorResult & {
   __typename?: 'PasswordValidationError';
   errorCode: ErrorCode;

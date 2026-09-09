@@ -366,15 +366,24 @@ export class UserService {
 
     /**
      * @description
-     * Marks a User as `verified` without a verification token, as the counterpart to
-     * {@link UserService.verifyUserByToken} for a verification initiated by an administrator. Any
-     * pending `verificationToken` is cleared, which also ends the `refreshCustomerVerification`
-     * flow for the account, since that only issues a new token while one is pending.
+     * Marks a User as `verified`. Unlike {@link UserService.verifyUserByToken}, no verification
+     * token is required, so this is the route for a verification an administrator performs on the
+     * account holder's behalf. Clears any pending `verificationToken`, so
+     * `refreshCustomerVerification` will no longer issue a new one.
      *
-     * The `password` argument is subject to the same rules as in `verifyUserByToken`: a
+     * The `password` argument follows the same rules as in `verifyUserByToken`: a
      * {@link NativeAuthenticationMethod} with no `passwordHash` requires one, and a credential
      * which already has one rejects it. A User with no native credential at all is verified only
      * without a `password`, since there is nothing to set it on.
+     *
+     * Note that `verified` is not checked before the credential is written, so for a User which is
+     * already verified but whose credential has no `passwordHash`, this sets that password. That
+     * state is what {@link UserService.addUnactivatedNativeAuthenticationMethod} leaves behind on
+     * an SSO account somebody has registered a native password against, and activating it is
+     * otherwise reserved for whoever controls the email address (GHSA-wr5h-x3x6-4h23). So this is a
+     * second activation route, and it must stay behind the `UpdateCustomer` permission: an
+     * administrator holding that can already change the email address and drive a password reset,
+     * whereas the registering caller proved nothing.
      *
      * @since 3.8.0
      */
@@ -403,15 +412,14 @@ export class UserService {
     }
 
     /**
-     * Applies the `password` argument of a verification flow to the given native credential,
-     * setting its `passwordHash`. Returns an ErrorResult if the password and the credential do not
-     * go together, in which case the caller must not save the credential.
+     * Writes the `password` argument of a verification flow onto the given native credential as a
+     * hash. The credential is mutated in place and left unsaved, so the caller saves it on success
+     * and discards it on the ErrorResult this returns.
      *
      * A credential with an empty `passwordHash` can never be used to log in, since
-     * `NativeAuthenticationStrategy` rejects an empty stored hash, so verifying one leaves the
-     * account verified and unusable unless a password is supplied at the same time. Supplying a
-     * password for a credential which already has one is rejected: neither verification flow is a
-     * route to take over an account.
+     * `NativeAuthenticationStrategy` rejects an empty stored hash, so verifying one without a
+     * password leaves the account verified and unusable. A credential which already has a password
+     * rejects a new one, so that neither verification flow can overwrite it.
      */
     private async applyVerificationPassword(
         ctx: RequestContext,
