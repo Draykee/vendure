@@ -344,7 +344,7 @@
           "title": "Translatable",
           "slug": "translatable",
           "file": "docs/guides/developer-guide/translatable/index.mdx",
-          "lastModified": "2026-02-12T16:47:03+01:00"
+          "lastModified": "2026-09-09T13:49:29+02:00"
         },
         {
           "title": "Has Custom Fields",
@@ -3714,7 +3714,7 @@
                   "title": "Email Plugin Types",
                   "slug": "email-plugin-types",
                   "file": "docs/reference/core-plugins/email-plugin/email-plugin-types.mdx",
-                  "lastModified": "2026-06-24T18:05:35+02:00"
+                  "lastModified": "2026-09-09T11:11:11Z"
                 },
                 {
                   "title": "Email Utils",
@@ -3726,13 +3726,13 @@
                   "title": "EmailEventHandler",
                   "slug": "email-event-handler",
                   "file": "docs/reference/core-plugins/email-plugin/email-event-handler.mdx",
-                  "lastModified": "2026-04-20T16:08:16+02:00"
+                  "lastModified": "2026-09-09T11:11:11Z"
                 },
                 {
                   "title": "EmailEventHandlerWithAsyncData",
                   "slug": "email-event-handler-with-async-data",
                   "file": "docs/reference/core-plugins/email-plugin/email-event-handler-with-async-data.mdx",
-                  "lastModified": "2026-04-20T16:08:16+02:00"
+                  "lastModified": "2026-09-09T11:11:11Z"
                 },
                 {
                   "title": "EmailEventListener",
@@ -3774,7 +3774,7 @@
                   "title": "Transport Options",
                   "slug": "transport-options",
                   "file": "docs/reference/core-plugins/email-plugin/transport-options.mdx",
-                  "lastModified": "2026-06-24T18:05:35+02:00"
+                  "lastModified": "2026-09-09T11:11:11Z"
                 }
               ],
               "lastModified": "2026-01-28T14:49:21+01:00"
