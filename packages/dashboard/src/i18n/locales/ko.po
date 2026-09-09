@@ -1030,6 +1030,10 @@ msgstr "환불 메모 입력"
 msgid "Order line removed"
 msgstr "주문 항목이 제거되었습니다"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password here verifies the account immediately. Left empty, the customer has no password and cannot log in until they set one."
+msgstr ""
+
 #: src/lib/components/layout/channel-switcher.tsx
 msgid "Content:"
 msgstr "내용:"
@@ -3760,6 +3764,10 @@ msgstr "카테고리"
 msgid "Moving..."
 msgstr "이동 중..."
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Needed only for a customer who has no password yet, since that account cannot be logged into. Leave empty for a customer who already has one."
+msgstr ""
+
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
 msgid "Assign"
 msgstr "할당"
@@ -5417,10 +5425,6 @@ msgstr "기타"
 msgid "refundReason.WrongItem"
 msgstr "잘못된 상품"
 
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
-msgstr ""
-
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
 msgstr "수정 요약"
@@ -7008,10 +7012,6 @@ msgstr ""
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "닫기"
-
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Needed only for a customer with no password yet, such as one created here without one: that account cannot be logged into. Leave empty for a customer who registered themselves."
-msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx
 #: src/lib/components/shared/rich-text-editor/selection-bubble-menu.tsx

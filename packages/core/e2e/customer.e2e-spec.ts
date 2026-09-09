@@ -1,4 +1,11 @@
-import { DeletionResult, ErrorCode, HistoryEntryType } from '@vendure/common/lib/generated-types';
+import {
+    CurrencyCode,
+    DeletionResult,
+    ErrorCode,
+    HistoryEntryType,
+    LanguageCode,
+    Permission,
+} from '@vendure/common/lib/generated-types';
 import { omit } from '@vendure/common/lib/omit';
 import { pick } from '@vendure/common/lib/pick';
 import {
@@ -11,7 +18,12 @@ import {
     RequestContextService,
     TransactionalConnection,
 } from '@vendure/core';
-import { createErrorResultGuard, createTestEnvironment, ErrorResultGuard } from '@vendure/testing';
+import {
+    createErrorResultGuard,
+    createTestEnvironment,
+    E2E_DEFAULT_CHANNEL_TOKEN,
+    ErrorResultGuard,
+} from '@vendure/testing';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -25,7 +37,9 @@ import {
     addNoteToCustomerDocument,
     createAddressDocument,
     createAdministratorDocument,
+    createChannelDocument,
     createCustomerDocument,
+    createRoleDocument,
     deleteCustomerAddressDocument,
     deleteCustomerDocument,
     deleteCustomerNoteDocument,
@@ -784,6 +798,14 @@ describe('Customer resolver', () => {
             expect(createCustomer.user!.verified).toBe(false);
         });
 
+        async function expectStillUnverified(customerId: string) {
+            const { customer } = await adminClient.query(getCustomerWithUserDocument, {
+                id: customerId,
+            });
+            expect(customer!.user!.verified).toBe(false);
+            expect(await getVerifiedHistoryEntryCount(customerId)).toBe(0);
+        }
+
         it('returns MissingPasswordError when the customer has no password and none is given', async () => {
             const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
                 id: unverifiedCustomerId,
@@ -791,6 +813,7 @@ describe('Customer resolver', () => {
 
             customerErrorGuard.assertErrorResult(verifyCustomerAccount);
             expect(verifyCustomerAccount.errorCode).toBe(ErrorCode.MISSING_PASSWORD_ERROR);
+            await expectStillUnverified(unverifiedCustomerId);
         });
 
         it('returns PasswordValidationError when the given password fails validation', async () => {
@@ -801,20 +824,14 @@ describe('Customer resolver', () => {
 
             customerErrorGuard.assertErrorResult(verifyCustomerAccount);
             expect(verifyCustomerAccount.errorCode).toBe(ErrorCode.PASSWORD_VALIDATION_ERROR);
-        });
-
-        it('leaves the customer unverified after a failed attempt', async () => {
-            const { customer } = await adminClient.query(getCustomerWithUserDocument, {
-                id: unverifiedCustomerId,
-            });
-
-            expect(customer!.user!.verified).toBe(false);
-            expect(await getVerifiedHistoryEntryCount(unverifiedCustomerId)).toBe(0);
+            // The dashboard prefers this over the generic `message`, since a custom
+            // PasswordValidationStrategy puts the policy it enforces here.
+            expect(typeof (verifyCustomerAccount as any).validationErrorMessage).toBe('string');
+            await expectStillUnverified(unverifiedCustomerId);
         });
 
         it('verifies an unverified customer, sets the password and clears the pending token', async () => {
-            const pendingToken = await getVerificationToken('unverified@test.com');
-            expect(pendingToken).toBeTruthy();
+            expect(typeof (await getVerificationToken('unverified@test.com'))).toBe('string');
 
             const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
                 id: unverifiedCustomerId,
@@ -907,6 +924,63 @@ describe('Customer resolver', () => {
             expect(eventFn).not.toHaveBeenCalled();
 
             subscription.unsubscribe();
+        });
+
+        it('is refused for a Customer in another Channel', async () => {
+            // `verifyCustomerAccount` loads the Customer scoped by `ctx.channelId`, so an
+            // administrator on another Channel must not be able to reach it by id.
+            const { createChannel } = await adminClient.query(createChannelDocument, {
+                input: {
+                    code: 'verify-scope-channel',
+                    token: 'verify-scope-channel-token',
+                    defaultLanguageCode: LanguageCode.en,
+                    currencyCode: CurrencyCode.USD,
+                    pricesIncludeTax: true,
+                    defaultShippingZoneId: 'T_1',
+                    defaultTaxZoneId: 'T_1',
+                },
+            });
+            expect('token' in createChannel && createChannel.token).toBe('verify-scope-channel-token');
+
+            adminClient.setChannelToken('verify-scope-channel-token');
+            try {
+                await expect(
+                    adminClient.query(verifyCustomerAccountDocument, { id: unverifiedCustomerId }),
+                ).rejects.toThrow('No Customer with the id');
+            } finally {
+                adminClient.setChannelToken(E2E_DEFAULT_CHANNEL_TOKEN);
+            }
+        });
+
+        it('is refused without the UpdateCustomer permission', async () => {
+            const { createRole } = await adminClient.query(createRoleDocument, {
+                input: {
+                    code: 'read-only-customers',
+                    description: 'Read-only customers',
+                    permissions: [Permission.ReadCustomer],
+                },
+            });
+            await adminClient.query(createAdministratorDocument, {
+                input: {
+                    emailAddress: 'read-only-admin@test.com',
+                    firstName: 'Read',
+                    lastName: 'Only',
+                    password: 'test-password',
+                    roleIds: [createRole.id],
+                },
+            });
+
+            await adminClient.asUserWithCredentials('read-only-admin@test.com', 'test-password');
+            try {
+                await expect(
+                    adminClient.query(verifyCustomerAccountDocument, {
+                        id: unverifiedCustomerId,
+                        password: 'other-password',
+                    }),
+                ).rejects.toThrow('You are not currently authorized to perform this action');
+            } finally {
+                await adminClient.asSuperAdmin();
+            }
         });
 
         it(

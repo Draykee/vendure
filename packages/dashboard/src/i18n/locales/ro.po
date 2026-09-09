@@ -1014,6 +1014,10 @@ msgstr "Introdu notă rambursare"
 msgid "Order line removed"
 msgstr "Linie comandă eliminată"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password here verifies the account immediately. Left empty, the customer has no password and cannot log in until they set one."
+msgstr ""
+
 #: src/lib/components/layout/channel-switcher.tsx
 msgid "Content:"
 msgstr "Conținut:"
@@ -3690,6 +3694,10 @@ msgstr "Categorie"
 msgid "Moving..."
 msgstr "Se mută..."
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Needed only for a customer who has no password yet, since that account cannot be logged into. Leave empty for a customer who already has one."
+msgstr ""
+
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
 msgid "Assign"
 msgstr "Atribuie"
@@ -5310,10 +5318,6 @@ msgstr "Altul"
 msgid "refundReason.WrongItem"
 msgstr "Articol greșit"
 
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
-msgstr ""
-
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
 msgstr "Rezumat modificări"
@@ -6880,10 +6884,6 @@ msgstr "Subliniat"
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "Închide"
-
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Needed only for a customer with no password yet, such as one created here without one: that account cannot be logged into. Leave empty for a customer who registered themselves."
-msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx
 #: src/lib/components/shared/rich-text-editor/selection-bubble-menu.tsx

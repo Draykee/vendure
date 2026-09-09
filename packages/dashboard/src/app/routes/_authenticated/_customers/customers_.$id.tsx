@@ -239,8 +239,8 @@ function CustomerDetailPage() {
                                 />
                                 <p className="text-muted-foreground text-sm">
                                     <Trans>
-                                        Setting a password verifies the account immediately. Leave empty to
-                                        send the customer a verification email instead.
+                                        Setting a password here verifies the account immediately. Left empty,
+                                        the customer has no password and cannot log in until they set one.
                                     </Trans>
                                 </p>
                             </div>
@@ -409,9 +409,8 @@ function VerifyAccountDialog({ customerId, onVerified }: { customerId: string; o
                     />
                     <p className="text-muted-foreground text-sm">
                         <Trans>
-                            Needed only for a customer with no password yet, such as one created here without
-                            one: that account cannot be logged into. Leave empty for a customer who registered
-                            themselves.
+                            Needed only for a customer who has no password yet, since that account cannot be
+                            logged into. Leave empty for a customer who already has one.
                         </Trans>
                     </p>
                     {error && (

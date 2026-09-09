@@ -1197,6 +1197,9 @@ export const verifyCustomerAccountDocument = graphql(
                     errorCode
                     message
                 }
+                ... on PasswordValidationError {
+                    validationErrorMessage
+                }
             }
         }
     `,

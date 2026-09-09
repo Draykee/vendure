@@ -128,4 +128,8 @@ test('should report a rejected password when creating a customer', async ({ page
     await page.getByRole('button', { name: 'Create' }).click();
 
     await expect(page.getByText('Failed to create customer')).toBeVisible();
+    // The description, not just the title, so the test fails if the server's reason stops being
+    // surfaced. The default PasswordValidationStrategy reports no policy of its own, so this is
+    // the generic message; a strategy which returns a string puts that in `validationErrorMessage`.
+    await expect(page.getByText('Password is invalid')).toBeVisible();
 });

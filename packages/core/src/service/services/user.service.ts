@@ -376,14 +376,11 @@ export class UserService {
      * which already has one rejects it. A User with no native credential at all is verified only
      * without a `password`, since there is nothing to set it on.
      *
-     * Note that `verified` is not checked before the credential is written, so for a User which is
-     * already verified but whose credential has no `passwordHash`, this sets that password. That
-     * state is what {@link UserService.addUnactivatedNativeAuthenticationMethod} leaves behind on
-     * an SSO account somebody has registered a native password against, and activating it is
-     * otherwise reserved for whoever controls the email address (GHSA-wr5h-x3x6-4h23). So this is a
-     * second activation route, and it must stay behind the `UpdateCustomer` permission: an
-     * administrator holding that can already change the email address and drive a password reset,
-     * whereas the registering caller proved nothing.
+     * `verified` is not checked before the credential is written, so a User which is already
+     * verified but whose credential has no `passwordHash` gets one here. That is the state
+     * {@link UserService.addUnactivatedNativeAuthenticationMethod} leaves behind, and activating it
+     * is otherwise reserved for whoever controls the email address (GHSA-wr5h-x3x6-4h23). This
+     * route is therefore only safe behind the `UpdateCustomer` permission.
      *
      * @since 3.8.0
      */

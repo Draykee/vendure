@@ -3,8 +3,7 @@ import {
     RegisterCustomerAccountResult,
     RegisterCustomerInput,
     UpdateCustomerInput as UpdateCustomerShopInput,
-    // Both APIs declare a `VerifyCustomerAccountResult`, with different members. Neither is
-    // imported under the bare name, so picking the wrong one here cannot compile.
+    // Both APIs declare a `VerifyCustomerAccountResult`, with different members.
     VerifyCustomerAccountResult as VerifyCustomerAccountShopResult,
 } from '@vendure/common/lib/generated-shop-types';
 import {

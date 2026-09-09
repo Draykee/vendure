@@ -783,7 +783,8 @@ function runSsoTakeoverSuite(requireVerification: boolean) {
         const { customers } = await adminClient.query(getCustomerListDocument, {
             options: { filter: { emailAddress: { eq: emailAddress } } },
         });
-        return customers.items.find(c => c.emailAddress === emailAddress)!.id;
+        expect(customers.items.length).toBe(1);
+        return customers.items[0].id;
     }
 
     it('an admin verifying an SSO-only account cannot give it a password', async () => {

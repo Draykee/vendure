@@ -11,6 +11,7 @@ import {
     DataService,
     DeleteCustomerAddressMutation,
     EditNoteDialogComponent,
+    ErrorResult,
     GetAvailableCountriesQuery,
     GetCustomerHistoryQuery,
     getCustomFieldsDefaults,
@@ -221,10 +222,12 @@ export class CustomerDetailComponent
         };
         this.dataService.customer.createCustomer(customer, password).subscribe(({ createCustomer }) => {
             if (createCustomer.__typename !== 'Customer') {
-                // EmailAddressConflictError and PasswordValidationError today. Reporting `message`
-                // covers both, and any member added to the union later. The cast is needed because
-                // the generated `__typename` is optional, so it does not narrow the union.
-                this.notificationService.error((createCustomer as any).message);
+                // Every member of the union other than Customer implements ErrorResult. The cast is
+                // needed because the generated `__typename` is optional, so it does not narrow.
+                const errorResult = createCustomer as ErrorResult & { validationErrorMessage?: string };
+                // A PasswordValidationError's `message` is the generic "Password is invalid"; the
+                // policy the password actually broke is in `validationErrorMessage`.
+                this.notificationService.error(errorResult.validationErrorMessage ?? errorResult.message);
                 return;
             }
             this.notificationService.success(_('common.notify-create-success'), {
