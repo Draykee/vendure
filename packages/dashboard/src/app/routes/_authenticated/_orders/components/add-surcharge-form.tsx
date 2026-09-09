@@ -2,7 +2,11 @@ import { AffixedInput } from '@/vdb/components/data-input/affixed-input.js';
 import { MoneyInput } from '@/vdb/components/data-input/money-input.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { Button } from '@/vdb/components/ui/button.js';
-import { ComboboxFreeText, filterComboboxFreeTextItems } from '@/vdb/components/ui/combobox-free-text.js';
+import {
+    ComboboxFreeText,
+    ComboboxFreeTextItem,
+    filterComboboxFreeTextItems,
+} from '@/vdb/components/ui/combobox-free-text.js';
 import { Form } from '@/vdb/components/ui/form.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Switch } from '@/vdb/components/ui/switch.js';
@@ -32,10 +36,23 @@ const surchargeFormSchema = z.object({
 
 type SurchargeFormValues = z.infer<typeof surchargeFormSchema>;
 
+/**
+ * @description
+ * An existing tax line, offered as a suggestion when filling in a surcharge's tax
+ * description. The rate travels with the description because the order's tax summary
+ * groups by both.
+ */
+export interface TaxDescriptionSuggestion {
+    description: string;
+    taxRate: number;
+}
+
 export interface AddSurchargeFormProps {
     onAddSurcharge: (surcharge: SurchargeInput) => void;
-    taxDescriptions: readonly string[];
+    taxDescriptions: readonly TaxDescriptionSuggestion[];
 }
+
+type TaxDescriptionItem = ComboboxFreeTextItem & { taxRate: number };
 
 export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<AddSurchargeFormProps>) {
     const { activeChannel } = useChannel();
@@ -58,8 +75,12 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
 
     const taxDescriptionItems = useMemo(
         () =>
-            filterComboboxFreeTextItems(
-                taxDescriptions.map(description => ({ value: description, label: description })),
+            filterComboboxFreeTextItems<TaxDescriptionItem>(
+                taxDescriptions.map(suggestion => ({
+                    value: suggestion.description,
+                    label: suggestion.description,
+                    taxRate: suggestion.taxRate,
+                })),
                 taxDescription,
             ),
         [taxDescriptions, taxDescription],
@@ -135,9 +156,13 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
                         name="taxDescription"
                         label={<Trans>Tax description</Trans>}
                         render={({ field }) => (
-                            <ComboboxFreeText
+                            <ComboboxFreeText<TaxDescriptionItem>
                                 value={field.value ?? ''}
                                 onValueChange={field.onChange}
+                                // Picking an existing description adopts its rate too. The
+                                // tax summary groups by description and rate, so keeping the
+                                // form's rate would still split the tax line in two.
+                                onSelectItem={item => surchargeForm.setValue('taxRate', item.taxRate)}
                                 items={taxDescriptionItems}
                             />
                         )}

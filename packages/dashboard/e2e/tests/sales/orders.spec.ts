@@ -527,6 +527,7 @@ test.describe('Orders', () => {
             .locator('[data-slot="card"]')
             .filter({ has: page.getByText('Add surcharge', { exact: true }) });
         const taxDescriptionInput = surchargeBlock.getByRole('combobox', { name: 'Tax description' });
+        const taxRateInput = surchargeBlock.getByRole('spinbutton', { name: 'Tax rate' });
         // The popup is portalled, so it sits outside the surcharge block.
         const suggestions = page.getByRole('listbox');
         const suggestion = (name: string) => suggestions.getByRole('option', { name, exact: true });
@@ -538,9 +539,13 @@ test.describe('Orders', () => {
             await expect(page.getByText(description)).toBeVisible();
         };
 
+        await expect(taxRateInput).toHaveValue('0');
         await taxDescriptionInput.click();
         await suggestion(seededTaxDescription).click();
         await expect(taxDescriptionInput).toHaveValue(seededTaxDescription);
+        // Picking a description adopts the rate it is charged at. The tax summary groups by
+        // description and rate, so leaving the form's rate would split the tax line anyway.
+        await expect(taxRateInput).toHaveValue('20');
 
         // Free text wins over the selection: a custom description must survive the popup
         // closing, instead of snapping back to the description that was picked.
