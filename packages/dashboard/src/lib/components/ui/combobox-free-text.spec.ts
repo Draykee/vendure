@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { filterComboboxFreeTextItems } from './combobox-free-text.js';
+import { filterComboboxFreeTextItems } from './combobox-free-text-utils.js';
 
 describe('filterComboboxFreeTextItems', () => {
     const items = [

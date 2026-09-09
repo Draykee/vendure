@@ -2,11 +2,8 @@ import { AffixedInput } from '@/vdb/components/data-input/affixed-input.js';
 import { MoneyInput } from '@/vdb/components/data-input/money-input.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { Button } from '@/vdb/components/ui/button.js';
-import {
-    ComboboxFreeText,
-    ComboboxFreeTextItem,
-    filterComboboxFreeTextItems,
-} from '@/vdb/components/ui/combobox-free-text.js';
+import { filterComboboxFreeTextItems } from '@/vdb/components/ui/combobox-free-text-utils.js';
+import { ComboboxFreeText, ComboboxFreeTextItem } from '@/vdb/components/ui/combobox-free-text.js';
 import { Form } from '@/vdb/components/ui/form.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Switch } from '@/vdb/components/ui/switch.js';

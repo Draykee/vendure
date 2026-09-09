@@ -1,8 +1,5 @@
-import {
-    ComboboxFreeText,
-    ComboboxFreeTextItem,
-    filterComboboxFreeTextItems,
-} from '@/vdb/components/ui/combobox-free-text.js';
+import { filterComboboxFreeTextItems } from '@/vdb/components/ui/combobox-free-text-utils.js';
+import { ComboboxFreeText, ComboboxFreeTextItem } from '@/vdb/components/ui/combobox-free-text.js';
 import { Field, FieldLabel } from '@/vdb/components/ui/field.js';
 import { useLingui } from '@lingui/react/macro';
 import { Link } from '@tanstack/react-router';
