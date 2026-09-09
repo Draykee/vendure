@@ -15,7 +15,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { User } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AddSurchargeForm } from './components/add-surcharge-form.js';
 import { CustomerAddressSelector } from './components/customer-address-selector.js';
@@ -93,6 +93,23 @@ function ModifyOrderPage() {
         setRecalculateShipping,
         hasModifications,
     } = useModifyOrder(entity);
+
+    // Tax descriptions already in play, offered as surcharge suggestions so a second
+    // surcharge doesn't create a duplicate tax line through a typing mistake. Includes the
+    // surcharges added earlier in this modification session, since those are not yet on
+    // the order. Empty descriptions are dropped: they'd render a blank suggestion row.
+    const taxDescriptions = useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    [
+                        ...(entity?.taxSummary ?? []).map(taxLine => taxLine.description),
+                        ...(modifyOrderInput.surcharges ?? []).map(surcharge => surcharge.taxDescription),
+                    ].filter((description): description is string => !!description),
+                ),
+            ),
+        [entity?.taxSummary, modifyOrderInput.surcharges],
+    );
 
     // --- Address editing state ---
     const [editingShippingAddress, setEditingShippingAddress] = useState(false);
@@ -192,12 +209,7 @@ function ModifyOrderPage() {
                 </PageBlock>
 
                 <PageBlock column="main" blockId="add-surcharge" title={<Trans>Add surcharge</Trans>}>
-                    <AddSurchargeForm
-                        onAddSurcharge={addSurcharge}
-                        taxDescriptions={Array.from(
-                            new Set(entity.taxSummary.map(taxLine => taxLine.description)),
-                        )}
-                    />
+                    <AddSurchargeForm onAddSurcharge={addSurcharge} taxDescriptions={taxDescriptions} />
                 </PageBlock>
 
                 <PageBlock

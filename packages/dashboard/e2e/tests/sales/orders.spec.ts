@@ -390,38 +390,51 @@ test.describe('Orders', () => {
         test.setTimeout(60_000);
 
         const orderId = await createModifyingOrder(page);
-        const client = new VendureAdminClient(page);
-        await client.login();
-        const { order } = await client.gql(
-            `
-            query ($id: ID!) {
-                order(id: $id) {
-                    taxSummary {
-                        description
-                    }
-                }
-            }
-        `,
-            { id: orderId },
-        );
-        const existingTaxDescription = order.taxSummary[0]?.description;
-        expect(existingTaxDescription).toBeTruthy();
 
         await page.goto(`/orders/${orderId}/modify`);
         await expect(page.getByRole('heading', { name: 'Modify order' })).toBeVisible({
             timeout: 10_000,
         });
 
+        // The order's only tax line, from the seeded 20% rate on the default zone —
+        // see e2e/fixtures/initial-data.ts. Hardcoded rather than read back from the
+        // API, so a wrong field mapping in the form can't produce a green test.
+        const seededTaxDescription = 'Standard Tax Europe';
+        // FormFieldWrapper derives the control id from the field name.
         const taxDescriptionInput = page.getByRole('combobox', { name: 'Tax description' });
+        const suggestion = (name: string) => page.getByRole('option', { name, exact: true });
+
         await taxDescriptionInput.click();
-        await taxDescriptionInput.press('ArrowDown');
-        await expect(page.getByRole('option', { name: existingTaxDescription, exact: true })).toBeVisible();
+        await suggestion(seededTaxDescription).click();
+        await expect(taxDescriptionInput).toHaveValue(seededTaxDescription);
 
-        await page.getByRole('option', { name: existingTaxDescription, exact: true }).click();
-        await expect(taxDescriptionInput).toHaveValue(existingTaxDescription);
-
+        // Free text wins over the selection: a custom description must survive the popup
+        // closing, rather than snapping back to the description that was picked.
         await taxDescriptionInput.fill('Custom tax description');
+        await taxDescriptionInput.press('Escape');
+        await taxDescriptionInput.blur();
         await expect(taxDescriptionInput).toHaveValue('Custom tax description');
+
+        // Add the surcharge, so the custom description becomes part of the pending
+        // modification rather than only sitting in the input.
+        await page.locator('#field-description').fill('Handling fee');
+        await page.locator('#field-price').fill('10.00');
+        await page.getByRole('button', { name: 'Add surcharge' }).click();
+        await expect(page.getByText('Handling fee')).toBeVisible();
+
+        // The pending surcharge's tax description is now suggested too — this is the
+        // duplicate-tax-line case: the description is not yet on the order.
+        await taxDescriptionInput.click();
+        await expect(suggestion('Custom tax description')).toBeVisible();
+        // Descriptions are deduplicated across the tax summary and the pending surcharges.
+        await expect(suggestion(seededTaxDescription)).toHaveCount(1);
+
+        // Typing filters the suggestions; a non-matching description offers nothing.
+        await taxDescriptionInput.fill('Custom');
+        await expect(suggestion('Custom tax description')).toBeVisible();
+        await expect(suggestion(seededTaxDescription)).toBeHidden();
+        await taxDescriptionInput.fill('No such tax');
+        await expect(page.getByRole('option')).toHaveCount(0);
     });
 
     test.describe('Order lifecycle', () => {

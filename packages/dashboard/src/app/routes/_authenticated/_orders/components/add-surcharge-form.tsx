@@ -2,14 +2,7 @@ import { AffixedInput } from '@/vdb/components/data-input/affixed-input.js';
 import { MoneyInput } from '@/vdb/components/data-input/money-input.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { Button } from '@/vdb/components/ui/button.js';
-import {
-    Combobox,
-    ComboboxContent,
-    ComboboxEmpty,
-    ComboboxInput,
-    ComboboxItem,
-    ComboboxList,
-} from '@/vdb/components/ui/combobox.js';
+import { ComboboxFreeText } from '@/vdb/components/ui/combobox-free-text.js';
 import { Form } from '@/vdb/components/ui/form.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Switch } from '@/vdb/components/ui/switch.js';
@@ -19,6 +12,7 @@ import { z, zodResolver } from '@/vdb/lib/zod.js';
 import { Trans } from '@lingui/react/macro';
 import { VariablesOf } from 'gql.tada';
 import { Plus } from 'lucide-react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { modifyOrderDocument } from '../orders.graphql.js';
 
@@ -60,6 +54,19 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
     });
 
     const taxRate = surchargeForm.watch('taxRate') || 0;
+    const taxDescription = surchargeForm.watch('taxDescription') ?? '';
+
+    // ComboboxFreeText does no client-side filtering, so narrow the suggestions here.
+    // While the value is untouched (empty, or exactly an existing description) show the
+    // full list so any description can be picked; only narrow once the admin types
+    // something of their own.
+    const taxDescriptionItems = useMemo(() => {
+        const filter = taxDescription.trim().toLowerCase();
+        const isUntouched = filter === '' || taxDescriptions.some(d => d.toLowerCase() === filter);
+        return taxDescriptions
+            .filter(description => isUntouched || description.toLowerCase().includes(filter))
+            .map(description => ({ value: description, label: description }));
+    }, [taxDescriptions, taxDescription]);
 
     const handleAddSurcharge = () => {
         surchargeForm.handleSubmit(values => {
@@ -131,31 +138,11 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
                         name="taxDescription"
                         label={<Trans>Tax description</Trans>}
                         render={({ field }) => (
-                            <Combobox
-                                items={taxDescriptions}
-                                inputValue={field.value ?? ''}
-                                onInputValueChange={field.onChange}
-                                onValueChange={value => field.onChange(value ?? '')}
-                            >
-                                <ComboboxInput
-                                    ref={field.ref}
-                                    name={field.name}
-                                    onBlur={field.onBlur}
-                                    showClear
-                                />
-                                <ComboboxContent>
-                                    <ComboboxEmpty>
-                                        <Trans>No matching tax descriptions</Trans>
-                                    </ComboboxEmpty>
-                                    <ComboboxList>
-                                        {taxDescriptions.map(description => (
-                                            <ComboboxItem key={description} value={description}>
-                                                {description}
-                                            </ComboboxItem>
-                                        ))}
-                                    </ComboboxList>
-                                </ComboboxContent>
-                            </Combobox>
+                            <ComboboxFreeText
+                                value={field.value ?? ''}
+                                onValueChange={field.onChange}
+                                items={taxDescriptionItems}
+                            />
                         )}
                     />
                 </DetailFormGrid>
