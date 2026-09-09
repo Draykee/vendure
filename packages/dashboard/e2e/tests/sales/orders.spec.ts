@@ -560,6 +560,12 @@ test.describe('Orders', () => {
         // Reuse the seeded description on a second surcharge: it must not then be
         // suggested twice, once from the tax summary and once from the pending surcharge.
         await suggestion(seededTaxDescription).click();
+        // A picked description stays browsable: the list is not narrowed to the pick, so
+        // the admin can reopen and switch to another description.
+        await taxDescriptionInput.click();
+        await expect(suggestion('Custom tax description')).toBeVisible();
+        // Close the popup, which otherwise covers the fields below.
+        await taxDescriptionInput.press('Escape');
         await addSurcharge('Gift wrap');
         await taxDescriptionInput.click();
         await expect(suggestion(seededTaxDescription)).toHaveCount(1);
