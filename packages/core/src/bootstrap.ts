@@ -7,9 +7,10 @@ import { getConnectionToken } from '@nestjs/typeorm';
 import { DEFAULT_COOKIE_NAME } from '@vendure/common/lib/shared-constants';
 import { Type } from '@vendure/common/lib/shared-types';
 import { satisfies } from 'semver';
-import { Connection, DataSourceOptions, EntitySubscriberInterface } from 'typeorm';
+import { DataSource, DataSourceOptions, EntitySubscriberInterface } from 'typeorm';
 import cookieSession = require('cookie-session');
 
+import { tokenMethodIncludes } from './api/common/token-method-includes';
 import { InternalServerError } from './common/error/errors';
 import { getConfig, setConfig } from './config/config-helpers';
 import { DefaultLogger } from './config/logger/default-logger';
@@ -21,15 +22,25 @@ import {
     getEntityNamesWithCustomFields,
     registerCustomEntityFields,
 } from './entity/register-custom-entity-fields';
+import { registerTranslationEntityUniqueConstraints } from './entity/register-translation-unique-constraints';
 import { runEntityMetadataModifiers } from './entity/run-entity-metadata-modifiers';
 import { setEntityIdStrategy } from './entity/set-entity-id-strategy';
 import { setMoneyStrategy } from './entity/set-money-strategy';
+import { patchTypeOrmDeepValue } from './entity/typeorm-deep-value-fix';
+import { patchTypeOrmDuplicateEagerLoad } from './entity/typeorm-duplicate-eager-load-fix';
+import { patchTypeOrmEagerRelationJoins } from './entity/typeorm-eager-relation-join-fix';
 import { patchTypeOrmEmbeddedRelationColumns } from './entity/typeorm-embedded-relation-fix';
 import { patchTypeOrmRelationIdLoader } from './entity/typeorm-relation-id-loader-fix';
 import { validateCustomFieldsConfig } from './entity/validate-custom-fields-config';
 import { EventBus } from './event-bus';
 import { BootstrappedEvent } from './event-bus/events/bootstrapped-event';
-import { getCompatibility, getConfigurationFunction, getEntitiesFromPlugins } from './plugin/plugin-metadata';
+import { warnAboutInsecureApiConfig } from './get-api-security-warnings';
+import {
+    flattenPlugins,
+    getCompatibility,
+    getConfigurationFunction,
+    getEntitiesFromPlugins,
+} from './plugin/plugin-metadata';
 import { getPluginStartupMessages } from './plugin/plugin-utils';
 import { setProcessContext } from './process-context/process-context';
 import { isTelemetryDisabled } from './telemetry/helpers/is-telemetry-disabled.helper';
@@ -200,6 +211,7 @@ export async function bootstrap(
     const config = await preBootstrapConfig(userConfig);
     Logger.useLogger(config.logger);
     Logger.info(`Bootstrapping Vendure Server (pid: ${process.pid})...`);
+    warnAboutInsecureApiConfig(config);
     checkPluginCompatibility(config, options?.ignoreCompatibilityErrorsForPlugins);
 
     // The AppModule *must* be loaded only after the entities have been set in the
@@ -217,10 +229,7 @@ export async function bootstrap(
     DefaultLogger.restoreOriginalLogLevel();
     app.useLogger(new Logger());
     app.set('trust proxy', trustProxy);
-    const { tokenMethod } = config.authOptions;
-    const usingCookie =
-        tokenMethod === 'cookie' || (Array.isArray(tokenMethod) && tokenMethod.includes('cookie'));
-    if (usingCookie) {
+    if (tokenMethodIncludes(config.authOptions.tokenMethod, 'cookie')) {
         configureSessionCookies(app, config);
     }
     const earlyMiddlewares = middleware.filter(mid => mid.beforeListen);
@@ -301,6 +310,7 @@ export async function preBootstrapConfig(
     userConfig: Partial<VendureConfig>,
 ): Promise<Readonly<RuntimeVendureConfig>> {
     if (userConfig) {
+        userConfig.plugins = flattenPlugins(userConfig.plugins ?? []);
         await setConfig(userConfig);
     }
 
@@ -324,17 +334,25 @@ export async function preBootstrapConfig(
     Logger.useLogger(config.logger);
     config = await runPluginConfigurations(config);
     const entityIdStrategy = config.entityOptions.entityIdStrategy ?? config.entityIdStrategy;
+    patchTypeOrmDeepValue();
+    patchTypeOrmDuplicateEagerLoad();
+    patchTypeOrmEagerRelationJoins();
     patchTypeOrmEmbeddedRelationColumns();
     patchTypeOrmRelationIdLoader();
-    registerCustomEntityFields(config);
-    setEntityIdStrategy(entityIdStrategy, entities);
-    const moneyStrategy = config.entityOptions.moneyStrategy;
-    setMoneyStrategy(moneyStrategy, entities);
-    const customFieldValidationResult = validateCustomFieldsConfig(config.customFields, entities);
+    const customFieldValidationResult = validateCustomFieldsConfig(
+        config.customFields,
+        entities,
+        config.dbConnectionOptions.type,
+    );
     if (!customFieldValidationResult.valid) {
         process.exitCode = 1;
         throw new Error('CustomFields config error:\n- ' + customFieldValidationResult.errors.join('\n- '));
     }
+    registerCustomEntityFields(config);
+    registerTranslationEntityUniqueConstraints(entities);
+    setEntityIdStrategy(entityIdStrategy, entities);
+    const moneyStrategy = config.entityOptions.moneyStrategy;
+    setMoneyStrategy(moneyStrategy, entities);
     await runEntityMetadataModifiers(config);
     setExposedHeaders(config);
     return config;
@@ -384,7 +402,16 @@ export async function runPluginConfigurations(config: RuntimeVendureConfig): Pro
     // `if (!config.customFields.SomeEntity) config.customFields.SomeEntity = []` guard.
     // Empty arrays are ignored by `registerCustomEntityFields`, so this is inert for
     // entities nobody extends. See OSS-408.
-    for (const entityName of getEntityNamesWithCustomFields()) {
+    //
+    // `getAllEntities` returns this server's entities: the core entities plus this config's
+    // plugin entities. Scoping to that list keeps out entities which are imported into the
+    // process but registered with a different server, such as a second server in the same
+    // process or an imported-but-uninstalled plugin. Those would otherwise seed phantom
+    // `config.customFields` keys (OSS-653). Taking the list from `config` also covers callers
+    // which reach `runPluginConfigurations` without going through `preBootstrapConfig`, such as
+    // the CLI and dashboard schema generators.
+    const entities = getAllEntities(config);
+    for (const entityName of getEntityNamesWithCustomFields(entities)) {
         if (!Object.prototype.hasOwnProperty.call(config.customFields, entityName)) {
             config.customFields[entityName] = [];
         }
@@ -504,7 +531,7 @@ function disableSynchronize(userConfig: Readonly<RuntimeVendureConfig>): Readonl
  * @param worker
  */
 async function validateDbTablesForWorker(worker: INestApplicationContext) {
-    const connection: Connection = worker.get(getConnectionToken());
+    const connection: DataSource = worker.get(getConnectionToken());
     await new Promise<void>(async (resolve, reject) => {
         const checkForTables = async (): Promise<boolean> => {
             try {

@@ -26,6 +26,10 @@ msgstr "Ad Soyad"
 msgid "Select items"
 msgstr "Öğe seç"
 
+#: src/lib/components/shared/asset/asset-gallery.tsx
+#~ msgid "Uploading assets..."
+#~ msgstr ""
+
 #: src/app/routes/_authenticated/_customers/components/customer-history/default-customer-history-components.tsx
 #: src/app/routes/_authenticated/_customers/components/customer-history/default-customer-history-components.tsx
 msgid "View changes"
@@ -77,6 +81,13 @@ msgstr "Daire, suit, vb."
 #: src/lib/components/shared/facet-value-selector.tsx
 msgid "No more items"
 msgstr "Başka öğe yok"
+
+#. placeholder {0}: fileUploads.length
+#. placeholder {1}: fileUploads.length
+#. placeholder {2}: fileUploads.length
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "{0, plural, one {Upload progress for {1} file} other {Upload progress for {2} files}}"
+msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/link-bubble-menu.tsx
 msgid "Edit link"
@@ -401,6 +412,7 @@ msgstr "Aramak için en az 2 karakter yazın..."
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Last name"
 msgstr "Soyad"
 
@@ -438,7 +450,7 @@ msgstr "Eklenecek widget yok"
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 #: src/lib/components/shared/asset/asset-preview.tsx
 msgid "Unknown error"
 msgstr "Bilinmeyen hata"
@@ -572,7 +584,7 @@ msgstr "Yeni koleksiyon"
 msgid "Insights"
 msgstr "İçgörüler"
 
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Failed to upload assets"
 msgstr ""
 
@@ -599,6 +611,10 @@ msgstr "Ürün seçeneği başarıyla oluşturuldu"
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx
 #~ msgid "Parent product"
 #~ msgstr "Üst ürün"
+
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Create new customer"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/low-stock-widget/index.tsx
 msgid "We couldn't load the stock levels"
@@ -639,6 +655,14 @@ msgstr "Kod bloğu"
 #: src/app/routes/_authenticated/_products/components/product-options-table.tsx
 msgid "Search options..."
 msgstr "Seçenek ara..."
+
+#. placeholder {0}: succeeded.length
+#. placeholder {1}: succeeded.length
+#. placeholder {2}: succeeded.length
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "{0, plural, one {Assigned {entityIdsLength} {entityType} to {1} channel} other {Assigned {entityIdsLength} {entityType} to {2} channels}}"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/metrics-widget/index.tsx
 #: src/lib/framework/dashboard-widget/metrics-widget/index.tsx
@@ -873,6 +897,7 @@ msgstr "Mevcut para birimleri"
 
 #: src/app/routes/_authenticated/_customer-groups/components/customer-group-members-table.tsx
 #: src/app/routes/_authenticated/_customers/customers.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Search customers..."
 msgstr "Müşteri ara..."
 
@@ -1052,6 +1077,11 @@ msgstr "Müşteri"
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Metadata returned by the payment handler."
 msgstr "Ödeme işleyicisi tarafından döndürülen meta veriler."
+
+#: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
+#: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
+msgid "Update address"
+msgstr ""
 
 #: src/lib/components/shared/error-page.tsx
 msgid "Page not found"
@@ -1348,6 +1378,7 @@ msgid "Assets"
 msgstr "Varlıklar"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Email address"
 msgstr "E-posta adresi"
 
@@ -1902,9 +1933,11 @@ msgstr "{row} x {col} tablo ekle"
 #: src/lib/components/data-table/views-sheet.tsx
 #: src/lib/components/layout/manage-languages-dialog.tsx
 #: src/lib/components/shared/asset/asset-focal-point-editor.tsx
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
 #: src/lib/components/shared/confirmation-dialog.tsx
 #: src/lib/components/shared/customer-address-form.tsx
+#: src/lib/components/shared/customer-selector.tsx
 #: src/lib/components/shared/navigation-confirmation.tsx
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 #: src/lib/components/shared/rich-text-editor/link-bubble-menu.tsx
@@ -2001,6 +2034,10 @@ msgstr "Vergi Kategorileri"
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx
 msgid "Private collections are not visible in the shop"
 msgstr "Özel koleksiyonlar mağazada görünmez"
+
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Create customer"
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "When enabled, a product is available in the shop"
@@ -2228,6 +2265,10 @@ msgstr "Bölgeden kaldır"
 #: src/lib/components/layout/manage-languages-dialog.tsx
 msgid "Select from globally available languages for this channel"
 msgstr "Bu kanal için genel olarak kullanılabilir dillerden seçin"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload timed out"
+msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
 msgid "Are you sure you want to delete this address?"
@@ -2962,6 +3003,10 @@ msgstr "Verileri görüntüle"
 msgid "Delete View"
 msgstr "Görünümü Sil"
 
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "Failed to assign {entityIdsLength} {entityType} to the selected channels"
+msgstr ""
+
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 msgid "Add a new address to the customer."
 msgstr "Müşteriye yeni bir adres ekleyin."
@@ -3014,6 +3059,10 @@ msgstr "Kargoyu yeniden hesapla"
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "Assets"
 msgstr "Varlıklar"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Uploading..."
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "This will remove all option groups from this product and return to the variant setup choice."
@@ -3184,6 +3233,10 @@ msgstr "Müşteri gruptan kaldırılamadı"
 msgid "1 property"
 msgstr ""
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed (HTTP {detail})"
+msgstr ""
+
 #: src/lib/components/layout/nav-user.tsx
 msgctxt "theme"
 msgid "System"
@@ -3339,8 +3392,8 @@ msgid "Override"
 msgstr "Geçersiz kıl"
 
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx
-msgid "Transaction ID is required"
-msgstr "İşlem ID gereklidir"
+#~ msgid "Transaction ID is required"
+#~ msgstr "İşlem ID gereklidir"
 
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "matches regex"
@@ -3433,10 +3486,9 @@ msgstr "Bilinmeyen ürün"
 msgid "Address updated"
 msgstr "Adres güncellendi"
 
-#. placeholder {0}: selectedChannelIds.length
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
-msgid "Successfully assigned {entityIdsLength} {entityType} to {0} channels"
-msgstr ""
+#~ msgid "Successfully assigned {entityIdsLength} {entityType} to {0} channels"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts
 msgid "Refund processed successfully"
@@ -3726,11 +3778,9 @@ msgstr "Ata"
 msgid "Successfully created seller"
 msgstr "Satıcı başarıyla oluşturuldu"
 
-#. placeholder {0}: failedChannelIds.length
-#. placeholder {1}: selectedChannelIds.length
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
-msgid "Failed to assign {entityIdsLength} {entityType} to {0} of {1} channels"
-msgstr ""
+#~ msgid "Failed to assign {entityIdsLength} {entityType} to {0} of {1} channels"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_profile/profile.tsx
 msgid "Failed to update profile picture"
@@ -3889,8 +3939,8 @@ msgid "Shipping Methods"
 msgstr "Kargo Yöntemleri"
 
 #: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
-msgid "Select an address"
-msgstr "Bir adres seçin"
+#~ msgid "Select an address"
+#~ msgstr "Bir adres seçin"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx
 #: src/lib/components/data-display/boolean.tsx
@@ -3959,6 +4009,10 @@ msgstr "eşit değildir"
 msgid "Refresh"
 msgstr "Yenile"
 
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Existing customer"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "e.g. Size"
 #~ msgstr "örn. Beden"
@@ -4010,6 +4064,10 @@ msgstr "Öğe seç"
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "New product"
 msgstr "Yeni ürün"
+
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "Failed for: {failedCodes}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 msgid "Manage Tags"
@@ -4132,6 +4190,10 @@ msgstr "Özellik değeri başarıyla oluşturuldu"
 msgid "Marketing"
 msgstr "Pazarlama"
 
+#: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
+msgid "Existing address"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
 msgid "Draft order deleted"
 msgstr "Taslak sipariş silindi"
@@ -4154,6 +4216,7 @@ msgid "Remove from channel"
 msgstr "Kanaldan kaldır"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 msgid "Title"
 msgstr "Başlık"
@@ -4200,6 +4263,13 @@ msgstr "{0} varyant"
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Failed to settle payment"
 msgstr "Ödeme tamamlanamadı"
+
+#. placeholder {0}: failed.length
+#. placeholder {1}: failed.length
+#. placeholder {2}: failed.length
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "{0, plural, one {Failed to assign {entityIdsLength} {entityType} to {1} channel} other {Failed to assign {entityIdsLength} {entityType} to {2} channels}}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "No billing address"
@@ -4593,6 +4663,10 @@ msgstr "eşittir"
 msgid "Source File"
 msgstr "Kaynak dosya"
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed — check your connection"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Create options"
@@ -4955,6 +5029,10 @@ msgstr ""
 msgid "A refund of {formattedDiff} is required. Select payment amounts and enter a note to proceed."
 msgstr "{formattedDiff} tutarında iade gerekiyor. Ödeme tutarlarını seçin ve devam etmek için not girin."
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "File exceeds the server upload size limit"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/edit-order-table.tsx
 #: src/app/routes/_authenticated/_orders/components/order-table.tsx
 #: src/app/routes/_authenticated/_orders/components/refund-order-dialog.tsx
@@ -5079,6 +5157,10 @@ msgstr ""
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx
 msgid "Failed to create variants"
 msgstr "Varyantlar oluşturulamadı"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+#~ msgid "Upload progress for {0} files"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_global-settings/global-settings.tsx
 msgid "Sets the stock level at which this a variant is considered to be out of stock. Using a negative value enables backorder support. Can be overridden by product variants."
@@ -5530,6 +5612,10 @@ msgstr "Üyeleri düzenle"
 msgid "Stock on hand"
 msgstr "Eldeki stok"
 
+#: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
+msgid "New address"
+msgstr ""
+
 #. placeholder {0}: summary.count
 #: src/lib/components/shared/configurable-operation-arg-summary.tsx
 msgid "{0} properties"
@@ -5637,6 +5723,10 @@ msgstr "({maxRefundable} iade edilebilir)"
 #: src/app/routes/_authenticated/_administrators/administrators.tsx
 msgid "Identifier"
 msgstr "Tanımlayıcı"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Uploading assets"
+msgstr ""
 
 #: src/app/routes/_authenticated/_shipping-methods/components/fulfillment-handler-selector.tsx
 msgid "Select a fulfillment handler"
@@ -5809,7 +5899,7 @@ msgid "Failed to remove customers from group"
 msgstr "Müşteriler gruptan kaldırılamadı"
 
 #. placeholder {0}: failedAssets.length
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Failed to upload {0} assets"
 msgstr ""
 
@@ -6034,6 +6124,11 @@ msgstr "Varsayılan dil"
 msgid "Status"
 msgstr "Durum"
 
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
+msgid "Okay"
+msgstr ""
+
 #: src/lib/components/shared/configurable-operation-multi-selector.tsx
 #: src/lib/components/shared/configurable-operation-selector.tsx
 msgid "No options found"
@@ -6115,6 +6210,11 @@ msgstr "Kargo yöntemi başarıyla oluşturuldu"
 msgid "New Customer Group"
 msgstr "Yeni Müşteri Grubu"
 
+#. placeholder {0}: fileUploads.length
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "{doneCount} of {0} done"
+msgstr ""
+
 #: src/lib/components/shared/history-timeline/history-note-checkbox.tsx
 msgid "Visible to customer"
 msgstr "Müşteriye görünür"
@@ -6159,6 +6259,7 @@ msgstr "İade işlenemedi"
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "First name"
 msgstr "Ad"
 
@@ -6448,7 +6549,7 @@ msgid "Strikethrough"
 msgstr "Üstü çizili"
 
 #. placeholder {0}: createdAssets.length
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Uploaded {0} assets"
 msgstr ""
 
@@ -6712,6 +6813,10 @@ msgstr "Yeni Satıcı"
 msgid "Search tax categories..."
 msgstr "Vergi kategorisi ara..."
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed — invalid server response"
+msgstr ""
+
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 msgid "Edit image"
 msgstr "Görseli düzenle"
@@ -6739,6 +6844,10 @@ msgstr "Bu varyantın stokta olmadığı kabul edilen stok seviyesini ayarlar. N
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Create product options"
 #~ msgstr "Ürün seçenekleri oluştur"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload cancelled"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 #: src/lib/components/layout/manage-languages-dialog.tsx
@@ -6947,6 +7056,7 @@ msgid "Underline"
 msgstr "Altı çizili"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "Kapat"
 
@@ -7070,6 +7180,7 @@ msgid "Order process"
 msgstr "Sipariş süreci"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Phone number"
 msgstr "Telefon numarası"
 

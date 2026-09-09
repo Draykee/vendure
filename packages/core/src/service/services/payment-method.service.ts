@@ -218,19 +218,27 @@ export class PaymentMethodService {
         if (!hasPermission) {
             throw new ForbiddenError();
         }
-        for (const paymentMethodId of input.paymentMethodIds) {
-            const paymentMethod = await this.connection.findOneInChannel(
-                ctx,
-                PaymentMethod,
-                paymentMethodId,
-                ctx.channelId,
-            );
-            await this.channelService.assignToChannels(ctx, PaymentMethod, paymentMethodId, [
+        // Source entities must be visible in the active Channel (GHSA-422x-jq57-j238).
+        const paymentMethods = await this.connection.findByIdsInChannel(
+            ctx,
+            PaymentMethod,
+            input.paymentMethodIds,
+            ctx.channelId,
+            {},
+        );
+        for (const paymentMethod of paymentMethods) {
+            await this.channelService.assignToChannels(ctx, PaymentMethod, paymentMethod.id, [
                 input.channelId,
             ]);
         }
         return this.connection
-            .findByIdsInChannel(ctx, PaymentMethod, input.paymentMethodIds, ctx.channelId, {})
+            .findByIdsInChannel(
+                ctx,
+                PaymentMethod,
+                paymentMethods.map(method => method.id),
+                ctx.channelId,
+                {},
+            )
             .then(methods => methods.map(method => this.translator.translate(method, ctx)));
     }
 
@@ -249,14 +257,27 @@ export class PaymentMethodService {
         if (idsAreEqual(input.channelId, defaultChannel.id)) {
             throw new UserInputError('error.items-cannot-be-removed-from-default-channel');
         }
-        for (const paymentMethodId of input.paymentMethodIds) {
-            const paymentMethod = await this.connection.getEntityOrThrow(ctx, PaymentMethod, paymentMethodId);
-            await this.channelService.removeFromChannels(ctx, PaymentMethod, paymentMethodId, [
+        // Source entities must be visible in the active Channel (GHSA-422x-jq57-j238).
+        const paymentMethods = await this.connection.findByIdsInChannel(
+            ctx,
+            PaymentMethod,
+            input.paymentMethodIds,
+            ctx.channelId,
+            {},
+        );
+        for (const paymentMethod of paymentMethods) {
+            await this.channelService.removeFromChannels(ctx, PaymentMethod, paymentMethod.id, [
                 input.channelId,
             ]);
         }
         return this.connection
-            .findByIdsInChannel(ctx, PaymentMethod, input.paymentMethodIds, ctx.channelId, {})
+            .findByIdsInChannel(
+                ctx,
+                PaymentMethod,
+                paymentMethods.map(method => method.id),
+                ctx.channelId,
+                {},
+            )
             .then(methods => methods.map(method => this.translator.translate(method, ctx)));
     }
 
@@ -273,7 +294,7 @@ export class PaymentMethodService {
     async getEligiblePaymentMethods(ctx: RequestContext, order: Order): Promise<PaymentMethodQuote[]> {
         const paymentMethods = await this.connection
             .getRepository(ctx, PaymentMethod)
-            .find({ where: { enabled: true }, relations: ['channels'] });
+            .find({ where: { enabled: true }, relations: { channels: true } });
         const results: PaymentMethodQuote[] = [];
         const paymentMethodsInChannel = paymentMethods
             .filter(p => p.channels.find(pc => idsAreEqual(pc.id, ctx.channelId)))
@@ -335,7 +356,7 @@ export class PaymentMethodService {
     async getActivePaymentMethods(ctx: RequestContext): Promise<PaymentMethod[]> {
         const paymentMethods = await this.connection.getRepository(ctx, PaymentMethod).find({
             where: { enabled: true, channels: { id: ctx.channelId } },
-            relations: ['channels', 'customFields'],
+            relations: { channels: true, customFields: true },
         });
         return paymentMethods.map(p => this.translator.translate(p, ctx));
     }

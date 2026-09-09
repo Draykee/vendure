@@ -26,6 +26,10 @@ msgstr "전체 이름"
 msgid "Select items"
 msgstr "항목 선택"
 
+#: src/lib/components/shared/asset/asset-gallery.tsx
+#~ msgid "Uploading assets..."
+#~ msgstr ""
+
 #: src/app/routes/_authenticated/_customers/components/customer-history/default-customer-history-components.tsx
 #: src/app/routes/_authenticated/_customers/components/customer-history/default-customer-history-components.tsx
 msgid "View changes"
@@ -77,6 +81,13 @@ msgstr "아파트, 스위트 등"
 #: src/lib/components/shared/facet-value-selector.tsx
 msgid "No more items"
 msgstr "더 이상 항목 없음"
+
+#. placeholder {0}: fileUploads.length
+#. placeholder {1}: fileUploads.length
+#. placeholder {2}: fileUploads.length
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "{0, plural, one {Upload progress for {1} file} other {Upload progress for {2} files}}"
+msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/link-bubble-menu.tsx
 msgid "Edit link"
@@ -397,6 +408,7 @@ msgstr "검색하려면 최소 2자를 입력하세요..."
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Last name"
 msgstr "성"
 
@@ -434,7 +446,7 @@ msgstr ""
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 #: src/lib/components/shared/asset/asset-preview.tsx
 msgid "Unknown error"
 msgstr "알 수 없는 오류"
@@ -560,7 +572,7 @@ msgstr "새 컬렉션"
 msgid "Insights"
 msgstr "인사이트"
 
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Failed to upload assets"
 msgstr ""
 
@@ -587,6 +599,10 @@ msgstr "상품 옵션이 생성되었습니다"
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx
 #~ msgid "Parent product"
 #~ msgstr "상위 상품"
+
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Create new customer"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/low-stock-widget/index.tsx
 msgid "We couldn't load the stock levels"
@@ -626,6 +642,14 @@ msgstr ""
 
 #: src/app/routes/_authenticated/_products/components/product-options-table.tsx
 msgid "Search options..."
+msgstr ""
+
+#. placeholder {0}: succeeded.length
+#. placeholder {1}: succeeded.length
+#. placeholder {2}: succeeded.length
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "{0, plural, one {Assigned {entityIdsLength} {entityType} to {1} channel} other {Assigned {entityIdsLength} {entityType} to {2} channels}}"
 msgstr ""
 
 #: src/lib/framework/dashboard-widget/metrics-widget/index.tsx
@@ -861,6 +885,7 @@ msgstr "사용 가능한 통화"
 
 #: src/app/routes/_authenticated/_customer-groups/components/customer-group-members-table.tsx
 #: src/app/routes/_authenticated/_customers/customers.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Search customers..."
 msgstr ""
 
@@ -1043,6 +1068,11 @@ msgstr "고객"
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Metadata returned by the payment handler."
+msgstr ""
+
+#: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
+#: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
+msgid "Update address"
 msgstr ""
 
 #: src/lib/components/shared/error-page.tsx
@@ -1340,6 +1370,7 @@ msgid "Assets"
 msgstr "에셋"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Email address"
 msgstr "이메일 주소"
 
@@ -1894,9 +1925,11 @@ msgstr ""
 #: src/lib/components/data-table/views-sheet.tsx
 #: src/lib/components/layout/manage-languages-dialog.tsx
 #: src/lib/components/shared/asset/asset-focal-point-editor.tsx
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
 #: src/lib/components/shared/confirmation-dialog.tsx
 #: src/lib/components/shared/customer-address-form.tsx
+#: src/lib/components/shared/customer-selector.tsx
 #: src/lib/components/shared/navigation-confirmation.tsx
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 #: src/lib/components/shared/rich-text-editor/link-bubble-menu.tsx
@@ -1993,6 +2026,10 @@ msgstr "세금 카테고리"
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx
 msgid "Private collections are not visible in the shop"
 msgstr "비공개 컬렉션은 상점에 표시되지 않습니다"
+
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Create customer"
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "When enabled, a product is available in the shop"
@@ -2214,6 +2251,10 @@ msgstr "지역에서 제거"
 #: src/lib/components/layout/manage-languages-dialog.tsx
 msgid "Select from globally available languages for this channel"
 msgstr "이 채널에서 전역적으로 사용 가능한 언어 중 선택"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload timed out"
+msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
 msgid "Are you sure you want to delete this address?"
@@ -2944,6 +2985,10 @@ msgstr "데이터 보기"
 msgid "Delete View"
 msgstr "뷰 삭제"
 
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "Failed to assign {entityIdsLength} {entityType} to the selected channels"
+msgstr ""
+
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 msgid "Add a new address to the customer."
 msgstr "고객에게 새 주소를 추가합니다."
@@ -2996,6 +3041,10 @@ msgstr "배송비 재계산"
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "Assets"
 msgstr "에셋"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Uploading..."
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "This will remove all option groups from this product and return to the variant setup choice."
@@ -3166,6 +3215,10 @@ msgstr "그룹에서 고객 제거 실패"
 msgid "1 property"
 msgstr ""
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed (HTTP {detail})"
+msgstr ""
+
 #: src/lib/components/layout/nav-user.tsx
 msgctxt "theme"
 msgid "System"
@@ -3321,8 +3374,8 @@ msgid "Override"
 msgstr "재정의"
 
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx
-msgid "Transaction ID is required"
-msgstr "거래 ID는 필수입니다"
+#~ msgid "Transaction ID is required"
+#~ msgstr "거래 ID는 필수입니다"
 
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "matches regex"
@@ -3415,10 +3468,9 @@ msgstr ""
 msgid "Address updated"
 msgstr "주소가 업데이트되었습니다"
 
-#. placeholder {0}: selectedChannelIds.length
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
-msgid "Successfully assigned {entityIdsLength} {entityType} to {0} channels"
-msgstr "{entityIdsLength}개 {entityType}이(가) {0}개 채널에 할당되었습니다"
+#~ msgid "Successfully assigned {entityIdsLength} {entityType} to {0} channels"
+#~ msgstr "{entityIdsLength}개 {entityType}이(가) {0}개 채널에 할당되었습니다"
 
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts
 msgid "Refund processed successfully"
@@ -3704,11 +3756,9 @@ msgstr "할당"
 msgid "Successfully created seller"
 msgstr "판매자가 생성되었습니다"
 
-#. placeholder {0}: failedChannelIds.length
-#. placeholder {1}: selectedChannelIds.length
 #: src/lib/components/shared/assign-to-channel-dialog.tsx
-msgid "Failed to assign {entityIdsLength} {entityType} to {0} of {1} channels"
-msgstr "{entityIdsLength}개 {entityType}을(를) {1}개 채널 중 {0}개에 할당 실패"
+#~ msgid "Failed to assign {entityIdsLength} {entityType} to {0} of {1} channels"
+#~ msgstr "{entityIdsLength}개 {entityType}을(를) {1}개 채널 중 {0}개에 할당 실패"
 
 #: src/app/routes/_authenticated/_profile/profile.tsx
 msgid "Failed to update profile picture"
@@ -3867,8 +3917,8 @@ msgid "Shipping Methods"
 msgstr "배송 방법"
 
 #: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
-msgid "Select an address"
-msgstr "주소 선택"
+#~ msgid "Select an address"
+#~ msgstr "주소 선택"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx
 #: src/lib/components/data-display/boolean.tsx
@@ -3937,6 +3987,10 @@ msgstr "같지 않음"
 msgid "Refresh"
 msgstr "새로고침"
 
+#: src/lib/components/shared/customer-selector.tsx
+msgid "Existing customer"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "e.g. Size"
 #~ msgstr "예: 사이즈"
@@ -3988,6 +4042,10 @@ msgstr "항목 선택"
 #: src/app/routes/_authenticated/_products/products_.$id.tsx
 msgid "New product"
 msgstr "새 상품"
+
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "Failed for: {failedCodes}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 msgid "Manage Tags"
@@ -4107,6 +4165,10 @@ msgstr "속성 값이 생성되었습니다"
 msgid "Marketing"
 msgstr "마케팅"
 
+#: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
+msgid "Existing address"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
 msgid "Draft order deleted"
 msgstr "임시 저장 주문이 삭제되었습니다"
@@ -4129,6 +4191,7 @@ msgid "Remove from channel"
 msgstr "채널에서 제거"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 msgid "Title"
 msgstr "제목"
@@ -4175,6 +4238,13 @@ msgstr "{0}개 변형"
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Failed to settle payment"
 msgstr "결제 정산 실패"
+
+#. placeholder {0}: failed.length
+#. placeholder {1}: failed.length
+#. placeholder {2}: failed.length
+#: src/lib/components/shared/assign-to-channel-dialog.tsx
+msgid "{0, plural, one {Failed to assign {entityIdsLength} {entityType} to {1} channel} other {Failed to assign {entityIdsLength} {entityType} to {2} channels}}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "No billing address"
@@ -4556,6 +4626,10 @@ msgstr "같음"
 msgid "Source File"
 msgstr "소스 파일"
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed — check your connection"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Create options"
@@ -4918,6 +4992,10 @@ msgstr "{entityType}을(를) 채널에 할당"
 msgid "A refund of {formattedDiff} is required. Select payment amounts and enter a note to proceed."
 msgstr "{formattedDiff}의 환불이 필요합니다. 결제 금액을 선택하고 메모를 입력하여 계속하세요."
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "File exceeds the server upload size limit"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/edit-order-table.tsx
 #: src/app/routes/_authenticated/_orders/components/order-table.tsx
 #: src/app/routes/_authenticated/_orders/components/refund-order-dialog.tsx
@@ -5038,6 +5116,10 @@ msgstr ""
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx
 msgid "Failed to create variants"
 msgstr "변형 생성 실패"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+#~ msgid "Upload progress for {0} files"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_global-settings/global-settings.tsx
 msgid "Sets the stock level at which this a variant is considered to be out of stock. Using a negative value enables backorder support. Can be overridden by product variants."
@@ -5489,6 +5571,10 @@ msgstr "멤버 편집"
 msgid "Stock on hand"
 msgstr "보유 재고"
 
+#: src/app/routes/_authenticated/_orders/components/customer-address-selector.tsx
+msgid "New address"
+msgstr ""
+
 #. placeholder {0}: summary.count
 #: src/lib/components/shared/configurable-operation-arg-summary.tsx
 msgid "{0} properties"
@@ -5596,6 +5682,10 @@ msgstr "({maxRefundable} 환불 가능)"
 #: src/app/routes/_authenticated/_administrators/administrators.tsx
 msgid "Identifier"
 msgstr "식별자"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Uploading assets"
+msgstr ""
 
 #: src/app/routes/_authenticated/_shipping-methods/components/fulfillment-handler-selector.tsx
 msgid "Select a fulfillment handler"
@@ -5756,7 +5846,7 @@ msgid "Failed to remove customers from group"
 msgstr "그룹에서 고객을 제거하지 못했습니다"
 
 #. placeholder {0}: failedAssets.length
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Failed to upload {0} assets"
 msgstr ""
 
@@ -5970,6 +6060,11 @@ msgstr "기본 언어"
 msgid "Status"
 msgstr "상태"
 
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx
+msgid "Okay"
+msgstr ""
+
 #: src/lib/components/shared/configurable-operation-multi-selector.tsx
 #: src/lib/components/shared/configurable-operation-selector.tsx
 msgid "No options found"
@@ -6051,6 +6146,11 @@ msgstr "배송 방법이 생성되었습니다"
 msgid "New Customer Group"
 msgstr "새 고객 그룹"
 
+#. placeholder {0}: fileUploads.length
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "{doneCount} of {0} done"
+msgstr ""
+
 #: src/lib/components/shared/history-timeline/history-note-checkbox.tsx
 msgid "Visible to customer"
 msgstr "고객에게 표시"
@@ -6095,6 +6195,7 @@ msgstr "환불 처리 실패"
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "First name"
 msgstr "이름"
 
@@ -6372,7 +6473,7 @@ msgid "Strikethrough"
 msgstr ""
 
 #. placeholder {0}: createdAssets.length
-#: src/lib/components/shared/asset/asset-gallery.tsx
+#: src/lib/components/shared/asset/asset-picker-dialog.tsx
 msgid "Uploaded {0} assets"
 msgstr ""
 
@@ -6636,6 +6737,10 @@ msgstr "새 판매자"
 msgid "Search tax categories..."
 msgstr ""
 
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload failed — invalid server response"
+msgstr ""
+
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx
 msgid "Edit image"
 msgstr "이미지 편집"
@@ -6663,6 +6768,10 @@ msgstr "이 변형이 품절로 간주되는 재고 수준을 설정합니다. �
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Create product options"
 #~ msgstr "상품 옵션 생성"
+
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
+msgid "Upload cancelled"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 #: src/lib/components/layout/manage-languages-dialog.tsx
@@ -6871,6 +6980,7 @@ msgid "Underline"
 msgstr ""
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx
+#: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "닫기"
 
@@ -6990,6 +7100,7 @@ msgid "Order process"
 msgstr "주문 프로세스"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/lib/components/shared/customer-selector.tsx
 msgid "Phone number"
 msgstr "전화번호"
 
