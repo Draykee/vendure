@@ -1164,6 +1164,8 @@ msgid "Failed to update zone"
 msgstr "Zone bijwerken mislukt"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/lib/components/login/login-form.tsx
@@ -1800,6 +1802,10 @@ msgstr "Landen"
 msgid "Loading metrics…"
 msgstr "Statistieken laden…"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Customer account verified"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Failed to create product options"
@@ -2266,6 +2272,10 @@ msgstr "Selecteer uit globaal beschikbare talen voor dit kanaal"
 
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
+msgstr ""
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
@@ -4513,6 +4523,12 @@ msgstr "Item toevoegen"
 msgid "Successfully created API key"
 msgstr "API Key succesvol aangemaakt"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify account"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 msgid "Loading preview…"
 msgstr "Voorbeeld laden..."
@@ -5435,6 +5451,10 @@ msgstr "Overig"
 #: src/i18n/common-strings.ts
 msgid "refundReason.WrongItem"
 msgstr "Verkeerd artikel"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
@@ -6690,6 +6710,10 @@ msgstr "Subtotaal"
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "is less than"
 msgstr "is kleiner dan"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Failed to verify customer account"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"

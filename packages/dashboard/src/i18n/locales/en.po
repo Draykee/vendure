@@ -1160,6 +1160,8 @@ msgid "Failed to update zone"
 msgstr "Failed to update zone"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/lib/components/login/login-form.tsx
@@ -1796,6 +1798,10 @@ msgstr "Countries"
 msgid "Loading metrics…"
 msgstr "Loading metrics…"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Customer account verified"
+msgstr "Customer account verified"
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Failed to create product options"
@@ -2269,6 +2275,10 @@ msgstr "Select from globally available languages for this channel"
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
 msgstr "Upload timed out"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
+msgstr "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
 msgid "Are you sure you want to delete this address?"
@@ -4522,6 +4532,12 @@ msgstr "Add item"
 msgid "Successfully created API key"
 msgstr "Successfully created API key"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify account"
+msgstr "Verify account"
+
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 msgid "Loading preview…"
 msgstr "Loading preview…"
@@ -5444,6 +5460,10 @@ msgstr "Other"
 #: src/i18n/common-strings.ts
 msgid "refundReason.WrongItem"
 msgstr "Wrong item shipped"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
+msgstr "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
@@ -6695,6 +6715,10 @@ msgstr "Subtotal"
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "is less than"
 msgstr "is less than"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Failed to verify customer account"
+msgstr "Failed to verify customer account"
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"

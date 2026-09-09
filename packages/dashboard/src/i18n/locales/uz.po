@@ -1132,6 +1132,8 @@ msgid "Failed to update zone"
 msgstr "Hududni yangilab bo'lmadi"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/lib/components/login/login-form.tsx
@@ -1748,6 +1750,10 @@ msgstr "Mamlakatlar"
 msgid "Loading metrics…"
 msgstr "Ko'rsatkichlar yuklanmoqda…"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Customer account verified"
+msgstr ""
+
 #: src/lib/components/data-table/views-sheet.tsx
 msgid "Failed to rename view"
 msgstr "Ko'rinish nomini o'zgartirib bo'lmadi"
@@ -2201,6 +2207,10 @@ msgstr "Ushbu kanal uchun global mavjud tillardan tanlang"
 
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
+msgstr ""
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
@@ -4411,6 +4421,12 @@ msgstr "Element qo'shish"
 msgid "Successfully created API key"
 msgstr "API kaliti yaratildi"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify account"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 msgid "Loading preview…"
 msgstr "Ko'rib chiqish yuklanmoqda…"
@@ -5292,6 +5308,10 @@ msgstr "Boshqa"
 #: src/i18n/common-strings.ts
 msgid "refundReason.WrongItem"
 msgstr "Noto'g'ri mahsulot"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
@@ -6499,6 +6519,10 @@ msgstr "Oraliq jami"
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "is less than"
 msgstr "dan kichik"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Failed to verify customer account"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"

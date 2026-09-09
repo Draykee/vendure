@@ -41,6 +41,7 @@ import {
 import {
     activeOrderCustomerDocument,
     addItemToOrderDocument,
+    registerAccountDocument,
     setCustomerDocument,
     updatedOrderFragment,
 } from './graphql/shop-definitions';
@@ -69,6 +70,9 @@ const customerOrdersGuard: ErrorResultGuard<CustomerOrdersResult> = createErrorR
 );
 const customerHistoryGuard: ErrorResultGuard<CustomerHistoryResult> = createErrorResultGuard(
     input => !!input.history,
+);
+const successErrorGuard: ErrorResultGuard<{ success: boolean }> = createErrorResultGuard(
+    input => input.success != null,
 );
 describe('Customer resolver', () => {
     const { server, adminClient, shopClient } = createTestEnvironment(testConfig());
@@ -738,12 +742,26 @@ describe('Customer resolver', () => {
             expect(createCustomer.user!.verified).toBe(false);
         });
 
-        it('verifies an unverified customer', async () => {
+        it(
+            'throws when the customer has no password and none is given',
+            assertThrowsWithMessage(async () => {
+                await adminClient.query(verifyCustomerAccountDocument, { id: unverifiedCustomerId });
+            }, 'A password must be provided to verify a Customer who has no password set'),
+        );
+
+        it('verifies an unverified customer and sets the password', async () => {
             const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
                 id: unverifiedCustomerId,
+                password: 'test-password',
             });
 
             expect(verifyCustomerAccount.user!.verified).toBe(true);
+        });
+
+        it('the verified customer can log in with the given password', async () => {
+            const result = await shopClient.asUserWithCredentials('unverified@test.com', 'test-password');
+
+            expect(result.identifier).toBe('unverified@test.com');
         });
 
         it('records a CUSTOMER_VERIFIED history entry', async () => {
@@ -789,7 +807,10 @@ describe('Customer resolver', () => {
                 resolveFn = resolve;
             });
 
-            await adminClient.query(verifyCustomerAccountDocument, { id: createCustomer.id });
+            await adminClient.query(verifyCustomerAccountDocument, {
+                id: createCustomer.id,
+                password: 'test-password',
+            });
             await eventReceived;
 
             expect(eventFn).toHaveBeenCalledTimes(1);
@@ -804,6 +825,54 @@ describe('Customer resolver', () => {
             });
 
             expect(verifyCustomerAccount.user!.verified).toBe(true);
+        });
+
+        describe('customer who registered with a password', () => {
+            const emailAddress = 'self-registered@test.com';
+            let selfRegisteredCustomerId: string;
+
+            beforeAll(async () => {
+                await shopClient.asAnonymousUser();
+                const { registerCustomerAccount } = await shopClient.query(registerAccountDocument, {
+                    input: {
+                        emailAddress,
+                        firstName: 'Self',
+                        lastName: 'Registered',
+                        password: 'test-password',
+                    },
+                });
+                successErrorGuard.assertSuccess(registerCustomerAccount);
+                expect(registerCustomerAccount.success).toBe(true);
+
+                const { customers } = await adminClient.query(getCustomerListDocument, {
+                    options: { filter: { emailAddress: { eq: emailAddress } } },
+                });
+                selfRegisteredCustomerId = customers.items[0].id;
+            });
+
+            it(
+                'throws when a password is given for a customer who already has one',
+                assertThrowsWithMessage(async () => {
+                    await adminClient.query(verifyCustomerAccountDocument, {
+                        id: selfRegisteredCustomerId,
+                        password: 'other-password',
+                    });
+                }, 'This Customer already has a password set'),
+            );
+
+            it('verifies without a password', async () => {
+                const { verifyCustomerAccount } = await adminClient.query(verifyCustomerAccountDocument, {
+                    id: selfRegisteredCustomerId,
+                });
+
+                expect(verifyCustomerAccount.user!.verified).toBe(true);
+            });
+
+            it('can log in with the password chosen at registration', async () => {
+                const result = await shopClient.asUserWithCredentials(emailAddress, 'test-password');
+
+                expect(result.identifier).toBe(emailAddress);
+            });
         });
     });
 });

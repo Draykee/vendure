@@ -104,8 +104,8 @@ export const customerOrderListDocument = graphql(`
 `);
 
 export const createCustomerDocument = graphql(`
-    mutation CreateCustomer($input: CreateCustomerInput!) {
-        createCustomer(input: $input) {
+    mutation CreateCustomer($input: CreateCustomerInput!, $password: String) {
+        createCustomer(input: $input, password: $password) {
             __typename
             ... on Customer {
                 id
@@ -143,8 +143,8 @@ export const deleteCustomerDocument = graphql(`
 `);
 
 export const verifyCustomerAccountDocument = graphql(`
-    mutation VerifyCustomerAccount($id: ID!) {
-        verifyCustomerAccount(id: $id) {
+    mutation VerifyCustomerAccount($id: ID!, $password: String) {
+        verifyCustomerAccount(id: $id, password: $password) {
             id
             user {
                 id

@@ -5,7 +5,7 @@ import { ID } from '@vendure/common/lib/shared-types';
 
 import { RequestContext } from '../../api/common/request-context';
 import { ErrorResultUnion, isGraphQlErrorResult } from '../../common/error/error-result';
-import { EntityNotFoundError, InternalServerError } from '../../common/error/errors';
+import { EntityNotFoundError, InternalServerError, UserInputError } from '../../common/error/errors';
 import {
     IdentifierChangeTokenExpiredError,
     IdentifierChangeTokenInvalidError,
@@ -378,6 +378,58 @@ export class UserService {
         } else {
             return new VerificationTokenInvalidError();
         }
+    }
+
+    /**
+     * @description
+     * Marks a User as `verified` without a verification token, as used by the admin-initiated
+     * verification flow. Any pending `verificationToken` is cleared.
+     *
+     * A {@link NativeAuthenticationMethod} with an empty `passwordHash` can never be used to log in,
+     * since `NativeAuthenticationStrategy` rejects an empty stored hash. Such a User is therefore
+     * only verified if a `password` is supplied to set on the credential. Supplying a `password` for
+     * a credential which already has one is rejected: this is not a route to take over an account.
+     * Both cases throw a {@link UserInputError}.
+     *
+     * The `passwordHash` column is `select: false`, so the User is loaded with a query of its own.
+     *
+     * @since 3.8.0
+     */
+    async verifyUserWithoutToken(ctx: RequestContext, userId: ID, password?: string): Promise<User> {
+        const user = await this.connection
+            .getRepository(ctx, User)
+            .createQueryBuilder('user')
+            .leftJoinAndSelect('user.authenticationMethods', 'aums')
+            .addSelect('aums.passwordHash')
+            .where('user.id = :userId', { userId })
+            .getOne();
+        if (!user) {
+            throw new EntityNotFoundError('User', userId);
+        }
+        const nativeAuthMethod = user.getNativeAuthenticationMethod(false);
+        if (nativeAuthMethod) {
+            if (password) {
+                if (nativeAuthMethod.passwordHash) {
+                    throw new UserInputError('error.customer-password-already-set');
+                }
+                const passwordValidationResult = await this.validatePassword(ctx, password);
+                if (passwordValidationResult !== true) {
+                    throw new UserInputError('error.password-validation-failed', {
+                        validationErrorMessage: passwordValidationResult.validationErrorMessage,
+                    });
+                }
+                nativeAuthMethod.passwordHash = await this.passwordCipher.hash(password);
+            } else if (!nativeAuthMethod.passwordHash) {
+                throw new UserInputError('error.password-required-to-verify-customer');
+            }
+            nativeAuthMethod.verificationToken = null;
+            await this.connection
+                .getRepository(ctx, NativeAuthenticationMethod)
+                .save(nativeAuthMethod, { reload: false });
+        }
+        user.verified = true;
+        await this.connection.getRepository(ctx, User).save(user, { reload: false });
+        return user;
     }
 
     /**

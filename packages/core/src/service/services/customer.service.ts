@@ -574,31 +574,36 @@ export class CustomerService {
 
     /**
      * @description
-     * Manually marks a Customer's email address as verified, bypassing the email
-     * verification token flow. Intended for use by administrators when the customer
-     * has not received or is unable to complete the verification email.
+     * Manually marks a Customer's email address as verified, bypassing the email verification token
+     * flow. Intended for use by an administrator when the customer has not received or cannot
+     * complete the verification email.
      *
-     * If the Customer is already verified, this method is a no-op and returns the
-     * Customer unchanged.
+     * A Customer created by an administrator has no password, and a native credential with no
+     * password cannot be logged into. For such a Customer a `password` must be supplied here, and it
+     * is set on the credential as part of verifying it. Supplying a `password` for a Customer who
+     * already has one throws, since this is not a route to take over an account.
+     *
+     * Verifying an account also ends the `refreshCustomerVerification` flow for it, because
+     * {@link CustomerService.refreshVerificationToken} only issues a new token while the User is
+     * unverified. That is why a password is required rather than optional: it leaves the account
+     * usable, instead of one which is verified, has no password, and can no longer be sent a
+     * verification email.
+     *
+     * If the Customer is already verified, this method is a no-op and returns the Customer
+     * unchanged.
+     *
+     * @since 3.8.0
      */
-    async verifyCustomerAccount(ctx: RequestContext, customerId: ID): Promise<Customer> {
+    async verifyCustomerAccount(ctx: RequestContext, customerId: ID, password?: string): Promise<Customer> {
         const customer = await this.connection.getEntityOrThrow(ctx, Customer, customerId, {
             channelId: ctx.channelId,
-            relations: ['user', 'user.authenticationMethods'],
+            relations: ['user'],
         });
         if (!customer.user) {
             throw new InternalServerError('error.cannot-locate-customer-for-user');
         }
         if (!customer.user.verified) {
-            const nativeAuthMethod = customer.user.getNativeAuthenticationMethod(false);
-            if (nativeAuthMethod) {
-                nativeAuthMethod.verificationToken = null;
-                await this.connection
-                    .getRepository(ctx, NativeAuthenticationMethod)
-                    .save(nativeAuthMethod);
-            }
-            customer.user.verified = true;
-            await this.connection.getRepository(ctx, User).save(customer.user, { reload: false });
+            await this.userService.verifyUserWithoutToken(ctx, customer.user.id, password);
             await this.historyService.createHistoryEntryForCustomer({
                 customerId: customer.id,
                 ctx,

@@ -151,7 +151,7 @@ export class CustomerResolver {
         @Ctx() ctx: RequestContext,
         @Args() args: MutationVerifyCustomerAccountArgs,
     ): Promise<Customer> {
-        return this.customerService.verifyCustomerAccount(ctx, args.id);
+        return this.customerService.verifyCustomerAccount(ctx, args.id, args.password ?? undefined);
     }
 
     @Transaction()

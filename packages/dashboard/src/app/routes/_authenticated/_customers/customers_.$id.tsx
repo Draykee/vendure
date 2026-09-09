@@ -7,11 +7,13 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from '@/vdb/components/ui/dialog.js';
 import { Input } from '@/vdb/components/ui/input.js';
+import { Label } from '@/vdb/components/ui/label.js';
 import { NEW_ENTITY_PATH } from '@/vdb/constants.js';
 import { addCustomFields } from '@/vdb/framework/document-introspection/add-custom-fields.js';
 import { ActionBarItem } from '@/vdb/framework/layout-engine/action-bar-item-wrapper.js';
@@ -74,6 +76,9 @@ function CustomerDetailPage() {
     const { t } = useLingui();
     const queryClient = useQueryClient();
     const [newAddressOpen, setNewAddressOpen] = useState(false);
+    const [newCustomerPassword, setNewCustomerPassword] = useState('');
+    const [verifyOpen, setVerifyOpen] = useState(false);
+    const [verifyPassword, setVerifyPassword] = useState('');
 
     const { form, submitHandler, entity, isPending, refreshEntity, resetForm } = useDetailPage({
         pageId,
@@ -82,6 +87,12 @@ function CustomerDetailPage() {
         }),
         createDocument: createCustomerDocument,
         updateDocument: updateCustomerDocument,
+        // `createCustomer` verifies the account straight away when given a password, so an admin
+        // creating an account on a customer's behalf can hand over working credentials.
+        transformCreateVariables: variables => ({
+            ...variables,
+            password: newCustomerPassword || undefined,
+        }),
         setValuesForUpdate: entity => {
             return {
                 id: entity.id,
@@ -154,10 +165,14 @@ function CustomerDetailPage() {
         mutationFn: api.mutate(verifyCustomerAccountDocument),
         onSuccess: () => {
             toast.success(t`Customer account verified`);
+            setVerifyOpen(false);
+            setVerifyPassword('');
             refreshEntity();
         },
-        onError: () => {
-            toast.error(t`Failed to verify customer account`);
+        onError: err => {
+            toast.error(t`Failed to verify customer account`, {
+                description: err instanceof Error ? err.message : undefined,
+            });
         },
     });
 
@@ -169,14 +184,51 @@ function CustomerDetailPage() {
             <PageActionBar>
                 {entity?.user && !entity.user.verified && (
                     <ActionBarItem itemId="verify-button" requiresPermission={['UpdateCustomer']}>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={isVerifyPending}
-                            onClick={() => verifyCustomer({ id: entity.id })}
-                        >
-                            <Trans>Verify account</Trans>
-                        </Button>
+                        <Dialog open={verifyOpen} onOpenChange={setVerifyOpen}>
+                            <DialogTrigger render={<Button type="button" variant="secondary" />}>
+                                <Trans>Verify account</Trans>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        <Trans>Verify account</Trans>
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        <Trans>
+                                            Marks the account as verified without the customer having to use a
+                                            verification email. A customer who has no password yet cannot log
+                                            in, so set one here for them.
+                                        </Trans>
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="verify-password">
+                                        <Trans>Password</Trans>
+                                    </Label>
+                                    <Input
+                                        id="verify-password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        value={verifyPassword}
+                                        onChange={e => setVerifyPassword(e.target.value)}
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button
+                                        type="button"
+                                        disabled={isVerifyPending}
+                                        onClick={() =>
+                                            verifyCustomer({
+                                                id: entity.id,
+                                                password: verifyPassword || undefined,
+                                            })
+                                        }
+                                    >
+                                        <Trans>Verify account</Trans>
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </ActionBarItem>
                 )}
                 <ActionBarItem itemId="save-button" requiresPermission={['UpdateCustomer']}>
@@ -222,6 +274,26 @@ function CustomerDetailPage() {
                             label={<Trans>Phone number</Trans>}
                             render={({ field }) => <Input {...field} />}
                         />
+                        {creatingNewEntity && (
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="new-customer-password">
+                                    <Trans>Password</Trans>
+                                </Label>
+                                <Input
+                                    id="new-customer-password"
+                                    type="password"
+                                    autoComplete="new-password"
+                                    value={newCustomerPassword}
+                                    onChange={e => setNewCustomerPassword(e.target.value)}
+                                />
+                                <p className="text-muted-foreground text-sm">
+                                    <Trans>
+                                        Setting a password verifies the account immediately. Leave empty to
+                                        send the customer a verification email instead.
+                                    </Trans>
+                                </p>
+                            </div>
+                        )}
                     </DetailFormGrid>
                 </PageBlock>
                 <CustomFieldsPageBlock column="main" entityType="Customer" control={form.control} />

@@ -3299,6 +3299,14 @@ export type Mutation = {
   updateUserChannels: UserStatus;
   /** Update an existing Zone */
   updateZone: Zone;
+  /**
+   * Manually verify a customer account, bypassing the email verification token flow.
+   *
+   * A Customer with no password set (as created by `createCustomer` without one) cannot log in,
+   * so for such a Customer the `password` argument is required. Passing a `password` for a
+   * Customer who already has one is an error.
+   */
+  verifyCustomerAccount: Customer;
 };
 
 
@@ -4270,6 +4278,12 @@ export type MutationUpdateUserChannelsArgs = {
 
 export type MutationUpdateZoneArgs = {
   input: UpdateZoneInput;
+};
+
+
+export type MutationVerifyCustomerAccountArgs = {
+  id: Scalars['ID']['input'];
+  password?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type NativeAuthInput = {

@@ -29,8 +29,14 @@ type Mutation {
     updateCustomerNote(input: UpdateCustomerNoteInput!): HistoryEntry!
     deleteCustomerNote(id: ID!): DeletionResponse!
 
-    "Manually verify a customer account, bypassing the email verification token flow."
-    verifyCustomerAccount(id: ID!): Customer!
+    """
+    Manually verify a customer account, bypassing the email verification token flow.
+
+    A Customer with no password set (as created by `createCustomer` without one) cannot log in,
+    so for such a Customer the `password` argument is required. Passing a `password` for a
+    Customer who already has one is an error.
+    """
+    verifyCustomerAccount(id: ID!, password: String): Customer!
 }
 
 input UpdateCustomerInput {

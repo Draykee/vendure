@@ -1160,6 +1160,8 @@ msgid "Failed to update zone"
 msgstr "更新区域失败"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/app/routes/_authenticated/_profile/profile.tsx
 #: src/lib/components/login/login-form.tsx
@@ -1796,6 +1798,10 @@ msgstr "国家"
 msgid "Loading metrics…"
 msgstr "正在加载指标…"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Customer account verified"
+msgstr ""
+
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #: src/app/routes/_authenticated/_products/components/create-product-options-dialog.tsx
 #~ msgid "Failed to create product options"
@@ -2268,6 +2274,10 @@ msgstr "从此渠道的全局可用语言中选择"
 
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
+msgstr ""
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
@@ -4522,6 +4532,12 @@ msgstr "添加项目"
 msgid "Successfully created API key"
 msgstr "API Key 创建成功"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify account"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 msgid "Loading preview…"
 msgstr "正在加载预览..."
@@ -5444,6 +5460,10 @@ msgstr "其他"
 #: src/i18n/common-strings.ts
 msgid "refundReason.WrongItem"
 msgstr "发错商品"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Setting a password verifies the account immediately. Leave empty to send the customer a verification email instead."
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx
 msgid "Summary of modifications"
@@ -6695,6 +6715,10 @@ msgstr "小计"
 #: src/lib/components/data-table/human-readable-operator.tsx
 msgid "is less than"
 msgstr "小于"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Failed to verify customer account"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"
