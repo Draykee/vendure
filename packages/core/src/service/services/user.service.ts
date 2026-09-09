@@ -249,13 +249,7 @@ export class UserService {
      * @internal
      */
     async nativeCredentialAwaitsActivation(ctx: RequestContext, userId: ID): Promise<boolean> {
-        const user = await this.connection
-            .getRepository(ctx, User)
-            .createQueryBuilder('user')
-            .leftJoinAndSelect('user.authenticationMethods', 'aums')
-            .addSelect('aums.passwordHash')
-            .where('user.id = :userId', { userId })
-            .getOne();
+        const user = await this.getUserWithPasswordHash(ctx, userId);
         const nativeAuthMethod = user?.getNativeAuthenticationMethod(false);
         if (!nativeAuthMethod) {
             return false;
@@ -354,19 +348,9 @@ export class UserService {
             );
             if (isTokenValid) {
                 const nativeAuthMethod = user.getNativeAuthenticationMethod();
-                if (!password) {
-                    if (!nativeAuthMethod.passwordHash) {
-                        return new MissingPasswordError();
-                    }
-                } else {
-                    if (!!nativeAuthMethod.passwordHash) {
-                        return new PasswordAlreadySetError();
-                    }
-                    const passwordValidationResult = await this.validatePassword(ctx, password);
-                    if (passwordValidationResult !== true) {
-                        return passwordValidationResult;
-                    }
-                    nativeAuthMethod.passwordHash = await this.passwordCipher.hash(password);
+                const passwordResult = await this.applyVerificationPassword(ctx, nativeAuthMethod, password);
+                if (passwordResult) {
+                    return passwordResult;
                 }
                 nativeAuthMethod.verificationToken = null;
                 user.verified = true;
@@ -382,54 +366,84 @@ export class UserService {
 
     /**
      * @description
-     * Marks a User as `verified` without a verification token, as used by the admin-initiated
-     * verification flow. Any pending `verificationToken` is cleared.
+     * Marks a User as `verified` without a verification token, as the counterpart to
+     * {@link UserService.verifyUserByToken} for a verification initiated by an administrator. Any
+     * pending `verificationToken` is cleared, which also ends the `refreshCustomerVerification`
+     * flow for the account, since that only issues a new token while one is pending.
      *
-     * A {@link NativeAuthenticationMethod} with an empty `passwordHash` can never be used to log in,
-     * since `NativeAuthenticationStrategy` rejects an empty stored hash. Such a User is therefore
-     * only verified if a `password` is supplied to set on the credential. Supplying a `password` for
-     * a credential which already has one is rejected: this is not a route to take over an account.
-     * Both cases throw a {@link UserInputError}.
-     *
-     * The `passwordHash` column is `select: false`, so the User is loaded with a query of its own.
+     * The `password` argument is subject to the same rules as in `verifyUserByToken`: a
+     * {@link NativeAuthenticationMethod} with no `passwordHash` requires one, and a credential
+     * which already has one rejects it. A User with no native credential at all is verified only
+     * without a `password`, since there is nothing to set it on.
      *
      * @since 3.8.0
      */
-    async verifyUserWithoutToken(ctx: RequestContext, userId: ID, password?: string): Promise<User> {
-        const user = await this.connection
+    async verifyUserWithoutToken(
+        ctx: RequestContext,
+        userId: ID,
+        password?: string,
+    ): Promise<User | MissingPasswordError | PasswordAlreadySetError | PasswordValidationError> {
+        const user = await this.getUserWithPasswordHash(ctx, userId);
+        if (!user) {
+            throw new EntityNotFoundError('User', userId);
+        }
+        const nativeAuthMethod = user.getNativeAuthenticationMethod(false);
+        if (nativeAuthMethod) {
+            const passwordResult = await this.applyVerificationPassword(ctx, nativeAuthMethod, password);
+            if (passwordResult) {
+                return passwordResult;
+            }
+            nativeAuthMethod.verificationToken = null;
+            await this.connection.getRepository(ctx, NativeAuthenticationMethod).save(nativeAuthMethod);
+        } else if (password) {
+            throw new UserInputError('error.cannot-set-password-without-native-credential');
+        }
+        user.verified = true;
+        return this.connection.getRepository(ctx, User).save(user);
+    }
+
+    /**
+     * Applies the `password` argument of a verification flow to the given native credential,
+     * setting its `passwordHash`. Returns an ErrorResult if the password and the credential do not
+     * go together, in which case the caller must not save the credential.
+     *
+     * A credential with an empty `passwordHash` can never be used to log in, since
+     * `NativeAuthenticationStrategy` rejects an empty stored hash, so verifying one leaves the
+     * account verified and unusable unless a password is supplied at the same time. Supplying a
+     * password for a credential which already has one is rejected: neither verification flow is a
+     * route to take over an account.
+     */
+    private async applyVerificationPassword(
+        ctx: RequestContext,
+        nativeAuthMethod: NativeAuthenticationMethod,
+        password?: string,
+    ): Promise<MissingPasswordError | PasswordAlreadySetError | PasswordValidationError | undefined> {
+        if (!password) {
+            return nativeAuthMethod.passwordHash ? undefined : new MissingPasswordError();
+        }
+        if (nativeAuthMethod.passwordHash) {
+            return new PasswordAlreadySetError();
+        }
+        const passwordValidationResult = await this.validatePassword(ctx, password);
+        if (passwordValidationResult !== true) {
+            return passwordValidationResult;
+        }
+        nativeAuthMethod.passwordHash = await this.passwordCipher.hash(password);
+        return undefined;
+    }
+
+    /**
+     * Loads a User with the `passwordHash` of its authentication methods. That column is
+     * `select: false`, so it takes a query of its own to read.
+     */
+    private getUserWithPasswordHash(ctx: RequestContext, userId: ID): Promise<User | null> {
+        return this.connection
             .getRepository(ctx, User)
             .createQueryBuilder('user')
             .leftJoinAndSelect('user.authenticationMethods', 'aums')
             .addSelect('aums.passwordHash')
             .where('user.id = :userId', { userId })
             .getOne();
-        if (!user) {
-            throw new EntityNotFoundError('User', userId);
-        }
-        const nativeAuthMethod = user.getNativeAuthenticationMethod(false);
-        if (nativeAuthMethod) {
-            if (password) {
-                if (nativeAuthMethod.passwordHash) {
-                    throw new UserInputError('error.customer-password-already-set');
-                }
-                const passwordValidationResult = await this.validatePassword(ctx, password);
-                if (passwordValidationResult !== true) {
-                    throw new UserInputError('error.password-validation-failed', {
-                        validationErrorMessage: passwordValidationResult.validationErrorMessage,
-                    });
-                }
-                nativeAuthMethod.passwordHash = await this.passwordCipher.hash(password);
-            } else if (!nativeAuthMethod.passwordHash) {
-                throw new UserInputError('error.password-required-to-verify-customer');
-            }
-            nativeAuthMethod.verificationToken = null;
-            await this.connection
-                .getRepository(ctx, NativeAuthenticationMethod)
-                .save(nativeAuthMethod, { reload: false });
-        }
-        user.verified = true;
-        await this.connection.getRepository(ctx, User).save(user, { reload: false });
-        return user;
     }
 
     /**

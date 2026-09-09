@@ -19,6 +19,7 @@ import {
     UpdateCustomerInput,
     UpdateCustomerNoteInput,
     UpdateCustomerResult,
+    VerifyCustomerAccountResult as VerifyCustomerAccountAdminResult,
 } from '@vendure/common/lib/generated-types';
 import { ID, PaginatedList } from '@vendure/common/lib/shared-types';
 import { IsNull } from 'typeorm';
@@ -26,7 +27,7 @@ import { IsNull } from 'typeorm';
 import { RequestContext } from '../../api/common/request-context';
 import { RelationPaths } from '../../api/decorators/relations.decorator';
 import { ErrorResultUnion, isGraphQlErrorResult } from '../../common/error/error-result';
-import { EntityNotFoundError, InternalServerError } from '../../common/error/errors';
+import { EntityNotFoundError, InternalServerError, UserInputError } from '../../common/error/errors';
 import { EmailAddressConflictError as EmailAddressConflictAdminError } from '../../common/error/generated-graphql-admin-errors';
 import {
     EmailAddressConflictError,
@@ -252,7 +253,7 @@ export class CustomerService {
         }
         const customerUser = await this.userService.createCustomerUser(ctx, input.emailAddress, password);
         if (isGraphQlErrorResult(customerUser)) {
-            throw customerUser;
+            return customerUser;
         }
         customer.user = customerUser;
 
@@ -574,36 +575,34 @@ export class CustomerService {
 
     /**
      * @description
-     * Manually marks a Customer's email address as verified, bypassing the email verification token
-     * flow. Intended for use by an administrator when the customer has not received or cannot
-     * complete the verification email.
+     * Manually marks a Customer's email address as verified, for use by an administrator when the
+     * customer has not received or cannot complete the verification email. See
+     * {@link UserService.verifyUserWithoutToken} for the rules the `password` argument follows.
      *
-     * A Customer created by an administrator has no password, and a native credential with no
-     * password cannot be logged into. For such a Customer a `password` must be supplied here, and it
-     * is set on the credential as part of verifying it. Supplying a `password` for a Customer who
-     * already has one throws, since this is not a route to take over an account.
-     *
-     * Verifying an account also ends the `refreshCustomerVerification` flow for it, because
-     * {@link CustomerService.refreshVerificationToken} only issues a new token while the User is
-     * unverified. That is why a password is required rather than optional: it leaves the account
-     * usable, instead of one which is verified, has no password, and can no longer be sent a
-     * verification email.
-     *
-     * If the Customer is already verified, this method is a no-op and returns the Customer
-     * unchanged.
+     * A Customer with no User (a guest checkout) has no account to verify, and is rejected.
      *
      * @since 3.8.0
      */
-    async verifyCustomerAccount(ctx: RequestContext, customerId: ID, password?: string): Promise<Customer> {
+    async verifyCustomerAccount(
+        ctx: RequestContext,
+        customerId: ID,
+        password?: string,
+    ): Promise<ErrorResultUnion<VerifyCustomerAccountAdminResult, Customer>> {
         const customer = await this.connection.getEntityOrThrow(ctx, Customer, customerId, {
             channelId: ctx.channelId,
             relations: ['user'],
         });
         if (!customer.user) {
-            throw new InternalServerError('error.cannot-locate-customer-for-user');
+            throw new UserInputError('error.customer-has-no-user-account');
         }
-        if (!customer.user.verified) {
-            await this.userService.verifyUserWithoutToken(ctx, customer.user.id, password);
+        const wasVerified = customer.user.verified;
+        const result = await this.userService.verifyUserWithoutToken(ctx, customer.user.id, password);
+        if (isGraphQlErrorResult(result)) {
+            return result;
+        }
+        // A Customer already verified by some other route keeps its original history entry and
+        // event: only the transition to verified is worth recording.
+        if (!wasVerified) {
             await this.historyService.createHistoryEntryForCustomer({
                 customerId: customer.id,
                 ctx,

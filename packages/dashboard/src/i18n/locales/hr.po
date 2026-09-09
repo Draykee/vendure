@@ -436,6 +436,7 @@ msgstr "Lokacija zaliha uspješno stvorena"
 msgid "No widgets to add"
 msgstr "Nema widgeta za dodavanje"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx
@@ -815,6 +816,10 @@ msgstr "Odaberite kupca za nastavak"
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx
 msgid "Successfully assigned option group"
 msgstr "Grupa opcija uspješno dodijeljena"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email."
+msgstr ""
 
 #: src/app/routes/_authenticated/_shipping-methods/components/shipping-method-test-result-wrapper.tsx
 msgid "Run Test"
@@ -1923,6 +1928,7 @@ msgstr "Umetni tablicu {row} × {col}"
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx
 #: src/app/routes/_authenticated/_orders/components/fulfill-order-dialog.tsx
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
@@ -2274,10 +2280,6 @@ msgstr "Odaberite iz globalno dostupnih jezika za ovaj kanal"
 
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
-msgstr ""
-
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
@@ -4534,7 +4536,6 @@ msgstr "API ključ uspješno stvoren"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 msgid "Verify account"
 msgstr ""
 
@@ -6222,6 +6223,10 @@ msgstr "Prati zalihe prema zadanim postavkama"
 msgid "{selected} of {total} selected"
 msgstr "Odabrano {selected} od {total}"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify"
+msgstr ""
+
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx
 msgid "Successfully created shipping method"
 msgstr "Način dostave uspješno stvoren"
@@ -6716,10 +6721,6 @@ msgstr "Međuzbroj"
 msgid "is less than"
 msgstr "manje je od"
 
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Failed to verify customer account"
-msgstr ""
-
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"
 msgstr "ID povrata"
@@ -7083,6 +7084,10 @@ msgstr "Podcrtano"
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "Zatvori"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Needed only for a customer with no password yet, such as one created here without one: that account cannot be logged into. Leave empty for a customer who registered themselves."
+msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx
 #: src/lib/components/shared/rich-text-editor/selection-bubble-menu.tsx

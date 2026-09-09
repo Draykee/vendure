@@ -436,6 +436,7 @@ msgstr "Successfully created stock location"
 msgid "No widgets to add"
 msgstr "No widgets to add"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx
@@ -815,6 +816,10 @@ msgstr "Select a customer to continue"
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx
 msgid "Successfully assigned option group"
 msgstr "Successfully assigned option group"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Marks the account as verified without the customer having to use a verification email."
+msgstr "Marks the account as verified without the customer having to use a verification email."
 
 #: src/app/routes/_authenticated/_shipping-methods/components/shipping-method-test-result-wrapper.tsx
 msgid "Run Test"
@@ -1923,6 +1928,7 @@ msgstr "Insert {row} by {col} table"
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx
 #: src/app/routes/_authenticated/_orders/components/fulfill-order-dialog.tsx
 #: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx
@@ -2275,10 +2281,6 @@ msgstr "Select from globally available languages for this channel"
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Upload timed out"
 msgstr "Upload timed out"
-
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
-msgstr "Marks the account as verified without the customer having to use a verification email. A customer who has no password yet cannot log in, so set one here for them."
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx
 msgid "Are you sure you want to delete this address?"
@@ -4534,7 +4536,6 @@ msgstr "Successfully created API key"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
 msgid "Verify account"
 msgstr "Verify account"
 
@@ -6222,6 +6223,10 @@ msgstr "Track inventory by default"
 msgid "{selected} of {total} selected"
 msgstr "{selected} of {total} selected"
 
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Verify"
+msgstr "Verify"
+
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx
 msgid "Successfully created shipping method"
 msgstr "Successfully created shipping method"
@@ -6716,10 +6721,6 @@ msgstr "Subtotal"
 msgid "is less than"
 msgstr "is less than"
 
-#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
-msgid "Failed to verify customer account"
-msgstr "Failed to verify customer account"
-
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx
 msgid "Refund ID"
 msgstr "Refund ID"
@@ -7083,6 +7084,10 @@ msgstr "Underline"
 #: src/lib/components/shared/asset/asset-upload-modal.tsx
 msgid "Close"
 msgstr "Close"
+
+#: src/app/routes/_authenticated/_customers/customers_.$id.tsx
+msgid "Needed only for a customer with no password yet, such as one created here without one: that account cannot be logged into. Leave empty for a customer who registered themselves."
+msgstr "Needed only for a customer with no password yet, such as one created here without one: that account cannot be logged into. Leave empty for a customer who registered themselves."
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx
 #: src/lib/components/shared/rich-text-editor/selection-bubble-menu.tsx

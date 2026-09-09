@@ -145,10 +145,17 @@ export const deleteCustomerDocument = graphql(`
 export const verifyCustomerAccountDocument = graphql(`
     mutation VerifyCustomerAccount($id: ID!, $password: String) {
         verifyCustomerAccount(id: $id, password: $password) {
-            id
-            user {
+            __typename
+            ... on Customer {
                 id
-                verified
+                user {
+                    id
+                    verified
+                }
+            }
+            ... on ErrorResult {
+                errorCode
+                message
             }
         }
     }

@@ -5,6 +5,7 @@ import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js'
 import { Button } from '@/vdb/components/ui/button.js';
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
@@ -29,6 +30,7 @@ import {
 import { detailPageRouteLoader } from '@/vdb/framework/page/detail-page-route-loader.js';
 import { useDetailPage } from '@/vdb/framework/page/use-detail-page.js';
 import { api } from '@/vdb/graphql/api.js';
+import { ResultOf } from '@/vdb/graphql/graphql.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -77,8 +79,6 @@ function CustomerDetailPage() {
     const queryClient = useQueryClient();
     const [newAddressOpen, setNewAddressOpen] = useState(false);
     const [newCustomerPassword, setNewCustomerPassword] = useState('');
-    const [verifyOpen, setVerifyOpen] = useState(false);
-    const [verifyPassword, setVerifyPassword] = useState('');
 
     const { form, submitHandler, entity, isPending, refreshEntity, resetForm } = useDetailPage({
         pageId,
@@ -87,8 +87,8 @@ function CustomerDetailPage() {
         }),
         createDocument: createCustomerDocument,
         updateDocument: updateCustomerDocument,
-        // `createCustomer` verifies the account straight away when given a password, so an admin
-        // creating an account on a customer's behalf can hand over working credentials.
+        // The password is a `createCustomer` argument of its own rather than a field of
+        // `CreateCustomerInput`, so it is held outside the generated form and attached here.
         transformCreateVariables: variables => ({
             ...variables,
             password: newCustomerPassword || undefined,
@@ -161,21 +161,6 @@ function CustomerDetailPage() {
         },
     });
 
-    const { mutate: verifyCustomer, isPending: isVerifyPending } = useMutation({
-        mutationFn: api.mutate(verifyCustomerAccountDocument),
-        onSuccess: () => {
-            toast.success(t`Customer account verified`);
-            setVerifyOpen(false);
-            setVerifyPassword('');
-            refreshEntity();
-        },
-        onError: err => {
-            toast.error(t`Failed to verify customer account`, {
-                description: err instanceof Error ? err.message : undefined,
-            });
-        },
-    });
-
     const customerName = entity ? `${entity.firstName} ${entity.lastName}` : '';
 
     return (
@@ -184,51 +169,7 @@ function CustomerDetailPage() {
             <PageActionBar>
                 {entity?.user && !entity.user.verified && (
                     <ActionBarItem itemId="verify-button" requiresPermission={['UpdateCustomer']}>
-                        <Dialog open={verifyOpen} onOpenChange={setVerifyOpen}>
-                            <DialogTrigger render={<Button type="button" variant="secondary" />}>
-                                <Trans>Verify account</Trans>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>
-                                        <Trans>Verify account</Trans>
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        <Trans>
-                                            Marks the account as verified without the customer having to use a
-                                            verification email. A customer who has no password yet cannot log
-                                            in, so set one here for them.
-                                        </Trans>
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="flex flex-col gap-2">
-                                    <Label htmlFor="verify-password">
-                                        <Trans>Password</Trans>
-                                    </Label>
-                                    <Input
-                                        id="verify-password"
-                                        type="password"
-                                        autoComplete="new-password"
-                                        value={verifyPassword}
-                                        onChange={e => setVerifyPassword(e.target.value)}
-                                    />
-                                </div>
-                                <DialogFooter>
-                                    <Button
-                                        type="button"
-                                        disabled={isVerifyPending}
-                                        onClick={() =>
-                                            verifyCustomer({
-                                                id: entity.id,
-                                                password: verifyPassword || undefined,
-                                            })
-                                        }
-                                    >
-                                        <Trans>Verify account</Trans>
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                        <VerifyAccountDialog customerId={entity.id} onVerified={refreshEntity} />
                     </ActionBarItem>
                 )}
                 <ActionBarItem itemId="save-button" requiresPermission={['UpdateCustomer']}>
@@ -274,6 +215,9 @@ function CustomerDetailPage() {
                             label={<Trans>Phone number</Trans>}
                             render={({ field }) => <Input {...field} />}
                         />
+                        {/* Not a FormFieldWrapper: the generated form is built from
+                            CreateCustomerInput, which has no password field. A rejected password comes
+                            back from the server as a PasswordValidationError. */}
                         {creatingNewEntity && (
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="new-customer-password">
@@ -377,5 +321,111 @@ function CustomerDetailPage() {
                 )}
             </PageLayout>
         </Page>
+    );
+}
+
+/**
+ * Verifies a Customer's account without the customer having to use a verification email.
+ *
+ * Whether a `password` is required depends on whether the Customer already has one, and the
+ * Customer type carries nothing which says. So the field is optional and the server's answer is
+ * what settles it: a `MissingPasswordError` or `PasswordAlreadySetError` is shown next to the
+ * field with the dialog still open, rather than as a toast over a closed one.
+ */
+function VerifyAccountDialog({ customerId, onVerified }: { customerId: string; onVerified: () => void }) {
+    const { t } = useLingui();
+    const [open, setOpen] = useState(false);
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string>();
+
+    function reset() {
+        setPassword('');
+        setError(undefined);
+    }
+
+    const { mutate: verifyCustomer, isPending } = useMutation({
+        mutationFn: api.mutate(verifyCustomerAccountDocument),
+        onSuccess: ({ verifyCustomerAccount: result }: ResultOf<typeof verifyCustomerAccountDocument>) => {
+            if (result.__typename !== 'Customer') {
+                setError(result.message);
+                return;
+            }
+            toast.success(t`Customer account verified`);
+            setOpen(false);
+            reset();
+            onVerified();
+        },
+        onError: err => {
+            setError(err instanceof Error ? err.message : t`Unknown error`);
+        },
+    });
+
+    return (
+        <Dialog
+            open={open}
+            onOpenChange={nextOpen => {
+                setOpen(nextOpen);
+                if (!nextOpen) {
+                    reset();
+                }
+            }}
+        >
+            <DialogTrigger render={<Button type="button" variant="secondary" />}>
+                <Trans>Verify account</Trans>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        <Trans>Verify account</Trans>
+                    </DialogTitle>
+                    <DialogDescription>
+                        <Trans>
+                            Marks the account as verified without the customer having to use a verification
+                            email.
+                        </Trans>
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col gap-2">
+                    <Label htmlFor="verify-password">
+                        <Trans>Password</Trans>
+                    </Label>
+                    <Input
+                        id="verify-password"
+                        type="password"
+                        autoComplete="new-password"
+                        value={password}
+                        aria-invalid={!!error || undefined}
+                        onChange={e => {
+                            setPassword(e.target.value);
+                            setError(undefined);
+                        }}
+                    />
+                    <p className="text-muted-foreground text-sm">
+                        <Trans>
+                            Needed only for a customer with no password yet, such as one created here without
+                            one: that account cannot be logged into. Leave empty for a customer who registered
+                            themselves.
+                        </Trans>
+                    </p>
+                    {error && (
+                        <p className="text-destructive text-sm" data-testid="verify-account-error">
+                            {error}
+                        </p>
+                    )}
+                </div>
+                <DialogFooter>
+                    <DialogClose render={<Button type="button" variant="secondary" />}>
+                        <Trans>Cancel</Trans>
+                    </DialogClose>
+                    <Button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => verifyCustomer({ id: customerId, password: password || undefined })}
+                    >
+                        <Trans>Verify</Trans>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

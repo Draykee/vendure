@@ -52,3 +52,40 @@ test('should show new history entries after updating the customer', async ({ pag
 
     await expect(page.getByText('Customer details updated').first()).toBeVisible();
 });
+
+// discussions/4756 — an admin-created customer has no password, so the verify dialog has to say
+// so rather than silently verifying an account nobody can log into
+test('should report a missing password inline, then verify the account', async ({ page }) => {
+    const client = new VendureAdminClient(page);
+    await client.login();
+    const result = await client.gql(
+        `mutation CreateCustomerForVerifyTest($input: CreateCustomerInput!) {
+            createCustomer(input: $input) {
+                ... on Customer { id }
+                ... on ErrorResult { errorCode message }
+            }
+        }`,
+        {
+            input: {
+                firstName: 'Verify',
+                lastName: 'DialogTest',
+                emailAddress: `verify-dialog-test-${Date.now()}@example.com`,
+            },
+        },
+    );
+    const customerId = result.createCustomer.id;
+    expect(customerId).toBeTruthy();
+
+    await page.goto(`/customers/${customerId}`);
+    await page.getByRole('button', { name: 'Verify account' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: 'Verify', exact: true }).click();
+    await expect(page.getByTestId('verify-account-error')).toContainText('password must be provided');
+
+    await dialog.getByLabel('Password').fill('test-password');
+    await dialog.getByRole('button', { name: 'Verify', exact: true }).click();
+
+    await expect(page.getByText('Customer account verified')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Verify account' })).toHaveCount(0);
+});

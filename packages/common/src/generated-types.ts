@@ -970,7 +970,7 @@ export type CreateCustomerInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreateCustomerResult = Customer | EmailAddressConflictError;
+export type CreateCustomerResult = Customer | EmailAddressConflictError | PasswordValidationError;
 
 export type CreateFacetInput = {
   code: Scalars['String']['input'];
@@ -1841,6 +1841,7 @@ export enum ErrorCode {
   MANUAL_PAYMENT_STATE_ERROR = 'MANUAL_PAYMENT_STATE_ERROR',
   MIME_TYPE_ERROR = 'MIME_TYPE_ERROR',
   MISSING_CONDITIONS_ERROR = 'MISSING_CONDITIONS_ERROR',
+  MISSING_PASSWORD_ERROR = 'MISSING_PASSWORD_ERROR',
   MULTIPLE_ORDER_ERROR = 'MULTIPLE_ORDER_ERROR',
   NATIVE_AUTH_STRATEGY_ERROR = 'NATIVE_AUTH_STRATEGY_ERROR',
   NEGATIVE_QUANTITY_ERROR = 'NEGATIVE_QUANTITY_ERROR',
@@ -1852,6 +1853,7 @@ export enum ErrorCode {
   ORDER_MODIFICATION_ERROR = 'ORDER_MODIFICATION_ERROR',
   ORDER_MODIFICATION_STATE_ERROR = 'ORDER_MODIFICATION_STATE_ERROR',
   ORDER_STATE_TRANSITION_ERROR = 'ORDER_STATE_TRANSITION_ERROR',
+  PASSWORD_ALREADY_SET_ERROR = 'PASSWORD_ALREADY_SET_ERROR',
   PASSWORD_RESET_TOKEN_EXPIRED_ERROR = 'PASSWORD_RESET_TOKEN_EXPIRED_ERROR',
   PASSWORD_RESET_TOKEN_INVALID_ERROR = 'PASSWORD_RESET_TOKEN_INVALID_ERROR',
   PASSWORD_VALIDATION_ERROR = 'PASSWORD_VALIDATION_ERROR',
@@ -2866,6 +2868,13 @@ export type MissingConditionsError = ErrorResult & {
   message: Scalars['String']['output'];
 };
 
+/** Returned when attempting to verify a Customer account without a password, when one is required. */
+export type MissingPasswordError = ErrorResult & {
+  __typename?: 'MissingPasswordError';
+  errorCode: ErrorCode;
+  message: Scalars['String']['output'];
+};
+
 export type ModifyOrderInput = {
   addItems?: InputMaybe<Array<AddItemInput>>;
   adjustOrderLines?: InputMaybe<Array<OrderLineInput>>;
@@ -3280,13 +3289,15 @@ export type Mutation = {
   /** Update an existing Zone */
   updateZone: Zone;
   /**
-   * Manually verify a customer account, bypassing the email verification token flow.
+   * Manually mark a Customer's email address as verified, without the Customer having to use a
+   * verification email.
    *
-   * A Customer with no password set (as created by `createCustomer` without one) cannot log in,
-   * so for such a Customer the `password` argument is required. Passing a `password` for a
-   * Customer who already has one is an error.
+   * A Customer with no password set (as created by `createCustomer` without one) cannot log in, so
+   * for such a Customer the `password` argument is required and returns a `MissingPasswordError`
+   * when omitted. A Customer who already has a password is verified by omitting the argument;
+   * passing one returns a `PasswordAlreadySetError`.
    */
-  verifyCustomerAccount: Customer;
+  verifyCustomerAccount: VerifyCustomerAccountResult;
 };
 
 
@@ -4629,6 +4640,13 @@ export enum OrderType {
 export type PaginatedList = {
   items: Array<Node>;
   totalItems: Scalars['Int']['output'];
+};
+
+/** Returned when attempting to verify a Customer account with a password, when a password has already been set. */
+export type PasswordAlreadySetError = ErrorResult & {
+  __typename?: 'PasswordAlreadySetError';
+  errorCode: ErrorCode;
+  message: Scalars['String']['output'];
 };
 
 /**
@@ -7383,6 +7401,8 @@ export type User = Node & {
   updatedAt: Scalars['DateTime']['output'];
   verified: Scalars['Boolean']['output'];
 };
+
+export type VerifyCustomerAccountResult = Customer | MissingPasswordError | PasswordAlreadySetError | PasswordValidationError;
 
 export type Zone = Node & {
   __typename?: 'Zone';

@@ -18,6 +18,7 @@ import {
     QueryCustomersArgs,
     Success,
     UpdateCustomerResult,
+    VerifyCustomerAccountResult,
 } from '@vendure/common/lib/generated-types';
 import { PaginatedList } from '@vendure/common/lib/shared-types';
 
@@ -150,7 +151,7 @@ export class CustomerResolver {
     async verifyCustomerAccount(
         @Ctx() ctx: RequestContext,
         @Args() args: MutationVerifyCustomerAccountArgs,
-    ): Promise<Customer> {
+    ): Promise<ErrorResultUnion<VerifyCustomerAccountResult, Customer>> {
         return this.customerService.verifyCustomerAccount(ctx, args.id, args.password ?? undefined);
     }
 

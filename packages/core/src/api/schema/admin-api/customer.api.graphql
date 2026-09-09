@@ -30,13 +30,15 @@ type Mutation {
     deleteCustomerNote(id: ID!): DeletionResponse!
 
     """
-    Manually verify a customer account, bypassing the email verification token flow.
+    Manually mark a Customer's email address as verified, without the Customer having to use a
+    verification email.
 
-    A Customer with no password set (as created by `createCustomer` without one) cannot log in,
-    so for such a Customer the `password` argument is required. Passing a `password` for a
-    Customer who already has one is an error.
+    A Customer with no password set (as created by `createCustomer` without one) cannot log in, so
+    for such a Customer the `password` argument is required and returns a `MissingPasswordError`
+    when omitted. A Customer who already has a password is verified by omitting the argument;
+    passing one returns a `PasswordAlreadySetError`.
     """
-    verifyCustomerAccount(id: ID!, password: String): Customer!
+    verifyCustomerAccount(id: ID!, password: String): VerifyCustomerAccountResult!
 }
 
 input UpdateCustomerInput {
@@ -67,6 +69,23 @@ input UpdateCustomerNoteInput {
     note: String!
 }
 
-union CreateCustomerResult = Customer | EmailAddressConflictError
+"Returned when attempting to verify a Customer account without a password, when one is required."
+type MissingPasswordError implements ErrorResult {
+    errorCode: ErrorCode!
+    message: String!
+}
+
+"Returned when attempting to verify a Customer account with a password, when a password has already been set."
+type PasswordAlreadySetError implements ErrorResult {
+    errorCode: ErrorCode!
+    message: String!
+}
+
+union CreateCustomerResult = Customer | EmailAddressConflictError | PasswordValidationError
 union UpdateCustomerResult = Customer | EmailAddressConflictError
+union VerifyCustomerAccountResult =
+    | Customer
+    | MissingPasswordError
+    | PasswordAlreadySetError
+    | PasswordValidationError
 
