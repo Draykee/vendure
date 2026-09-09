@@ -94,10 +94,9 @@ function ModifyOrderPage() {
         hasModifications,
     } = useModifyOrder(entity);
 
-    // Tax descriptions already in play, offered as surcharge suggestions so a second
-    // surcharge doesn't create a duplicate tax line through a typing mistake. Includes the
-    // surcharges added earlier in this modification session, since those are not yet on
-    // the order. Empty descriptions are dropped: they'd render a blank suggestion row.
+    // Tax descriptions already in play. Includes the surcharges added earlier in this
+    // modification session, which are not yet on the order. Empty descriptions would
+    // render a blank suggestion row, so they are dropped.
     const taxDescriptions = useMemo(
         () =>
             Array.from(

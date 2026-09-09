@@ -396,45 +396,58 @@ test.describe('Orders', () => {
             timeout: 10_000,
         });
 
-        // The order's only tax line, from the seeded 20% rate on the default zone —
-        // see e2e/fixtures/initial-data.ts. Hardcoded rather than read back from the
-        // API, so a wrong field mapping in the form can't produce a green test.
+        // The order's only tax line comes from the seeded 20% rate, which
+        // e2e/fixtures/initial-data.ts names "Standard Tax" and the populator suffixes with
+        // the zone. Hardcoded, so a wrong field mapping in the form can't go unnoticed.
         const seededTaxDescription = 'Standard Tax Europe';
-        // FormFieldWrapper derives the control id from the field name.
-        const taxDescriptionInput = page.getByRole('combobox', { name: 'Tax description' });
-        const suggestion = (name: string) => page.getByRole('option', { name, exact: true });
+
+        const surchargeBlock = page
+            .locator('[data-slot="card"]')
+            .filter({ has: page.getByText('Add surcharge', { exact: true }) });
+        const taxDescriptionInput = surchargeBlock.getByRole('combobox', { name: 'Tax description' });
+        // The popup is portalled, so it sits outside the surcharge block.
+        const suggestions = page.getByRole('listbox');
+        const suggestion = (name: string) => suggestions.getByRole('option', { name, exact: true });
+
+        const addSurcharge = async (description: string) => {
+            await surchargeBlock.getByRole('textbox', { name: 'Description' }).fill(description);
+            await surchargeBlock.getByRole('textbox', { name: 'Price' }).fill('10.00');
+            await surchargeBlock.getByRole('button', { name: 'Add surcharge' }).click();
+            await expect(page.getByText(description)).toBeVisible();
+        };
 
         await taxDescriptionInput.click();
         await suggestion(seededTaxDescription).click();
         await expect(taxDescriptionInput).toHaveValue(seededTaxDescription);
 
         // Free text wins over the selection: a custom description must survive the popup
-        // closing, rather than snapping back to the description that was picked.
+        // closing, instead of snapping back to the description that was picked.
         await taxDescriptionInput.fill('Custom tax description');
         await taxDescriptionInput.press('Escape');
         await taxDescriptionInput.blur();
         await expect(taxDescriptionInput).toHaveValue('Custom tax description');
 
-        // Add the surcharge, so the custom description becomes part of the pending
-        // modification rather than only sitting in the input.
-        await page.locator('#field-description').fill('Handling fee');
-        await page.locator('#field-price').fill('10.00');
-        await page.getByRole('button', { name: 'Add surcharge' }).click();
-        await expect(page.getByText('Handling fee')).toBeVisible();
+        await addSurcharge('Handling fee');
 
-        // The pending surcharge's tax description is now suggested too — this is the
-        // duplicate-tax-line case: the description is not yet on the order.
+        // The custom description is now suggested, which is only possible if it reached
+        // modifyOrderInput.surcharges — the duplicate-tax-line case, since the description
+        // is not yet on the order. Nothing on the page renders taxDescription directly.
         await taxDescriptionInput.click();
         await expect(suggestion('Custom tax description')).toBeVisible();
-        // Descriptions are deduplicated across the tax summary and the pending surcharges.
+
+        // Reuse the seeded description on a second surcharge: it must not then be
+        // suggested twice, once from the tax summary and once from the pending surcharge.
+        await suggestion(seededTaxDescription).click();
+        await addSurcharge('Gift wrap');
+        await taxDescriptionInput.click();
         await expect(suggestion(seededTaxDescription)).toHaveCount(1);
 
-        // Typing filters the suggestions; a non-matching description offers nothing.
+        // Typing narrows the suggestions, and a description matching nothing closes the popup.
         await taxDescriptionInput.fill('Custom');
         await expect(suggestion('Custom tax description')).toBeVisible();
         await expect(suggestion(seededTaxDescription)).toBeHidden();
         await taxDescriptionInput.fill('No such tax');
-        await expect(page.getByRole('option')).toHaveCount(0);
+        await expect(suggestions).toBeHidden();
     });
 
     test.describe('Order lifecycle', () => {

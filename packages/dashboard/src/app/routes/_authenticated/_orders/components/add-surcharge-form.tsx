@@ -2,7 +2,7 @@ import { AffixedInput } from '@/vdb/components/data-input/affixed-input.js';
 import { MoneyInput } from '@/vdb/components/data-input/money-input.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { Button } from '@/vdb/components/ui/button.js';
-import { ComboboxFreeText } from '@/vdb/components/ui/combobox-free-text.js';
+import { ComboboxFreeText, filterComboboxFreeTextItems } from '@/vdb/components/ui/combobox-free-text.js';
 import { Form } from '@/vdb/components/ui/form.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Switch } from '@/vdb/components/ui/switch.js';
@@ -56,17 +56,14 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
     const taxRate = surchargeForm.watch('taxRate') || 0;
     const taxDescription = surchargeForm.watch('taxDescription') ?? '';
 
-    // ComboboxFreeText does no client-side filtering, so narrow the suggestions here.
-    // While the value is untouched (empty, or exactly an existing description) show the
-    // full list so any description can be picked; only narrow once the admin types
-    // something of their own.
-    const taxDescriptionItems = useMemo(() => {
-        const filter = taxDescription.trim().toLowerCase();
-        const isUntouched = filter === '' || taxDescriptions.some(d => d.toLowerCase() === filter);
-        return taxDescriptions
-            .filter(description => isUntouched || description.toLowerCase().includes(filter))
-            .map(description => ({ value: description, label: description }));
-    }, [taxDescriptions, taxDescription]);
+    const taxDescriptionItems = useMemo(
+        () =>
+            filterComboboxFreeTextItems(
+                taxDescriptions.map(description => ({ value: description, label: description })),
+                taxDescription,
+            ),
+        [taxDescriptions, taxDescription],
+    );
 
     const handleAddSurcharge = () => {
         surchargeForm.handleSubmit(values => {
@@ -76,7 +73,7 @@ export function AddSurchargeForm({ onAddSurcharge, taxDescriptions }: Readonly<A
                 price: Number(values.price), // already in minor units from MoneyInput
                 priceIncludesTax: values.priceIncludesTax,
                 taxRate: values.taxRate ?? undefined,
-                taxDescription: values.taxDescription || undefined,
+                taxDescription: values.taxDescription?.trim() || undefined,
             });
             surchargeForm.reset();
         })();
