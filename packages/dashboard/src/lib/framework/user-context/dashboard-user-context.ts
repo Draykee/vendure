@@ -79,8 +79,8 @@ export interface DashboardAdministrator {
 
 /**
  * @description
- * Describes the logged-in dashboard user. Passed to nav menu transforms and to
- * `isVisible` predicates so they can decide what this user should see.
+ * Describes the logged-in dashboard user. Passed to `isVisible` predicates so they
+ * can decide what this user should see.
  *
  * This controls presentation only. It is never an authorization mechanism: a user who
  * can call an operation on the Admin API can still call it regardless of what the
