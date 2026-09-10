@@ -147,7 +147,6 @@ export interface NavMenuConfig {
 }
 
 globalRegistry.register('navMenuConfig', { sections: [] });
-globalRegistry.register('navMenuTransforms', []);
 
 export function getNavMenuConfig() {
     return globalRegistry.get('navMenuConfig');
@@ -295,42 +294,4 @@ export function validateNavigationShortcuts(config: NavMenuConfig): NavigationSh
         },
         errors,
     };
-}
-
-/**
- * @description
- * Transforms the nav menu config on every render, with access to the logged-in user.
- * Transforms compose by chaining: each receives the previous transform's output.
- *
- * Must be pure and synchronous. This controls presentation only and is never an
- * authorization mechanism.
- *
- * @docsCategory extensions-api
- * @docsPage Navigation
- * @since 3.8.0
- */
-export type NavMenuTransform = (config: NavMenuConfig, ctx: DashboardUserContext) => NavMenuConfig;
-
-/**
- * @description
- * Returns all registered nav menu transforms, in registration order.
- *
- * @since 3.8.0
- */
-export function getNavMenuTransforms(): NavMenuTransform[] {
-    return globalRegistry.get('navMenuTransforms');
-}
-
-/**
- * @description
- * Registers a nav menu transform. Transforms are applied in registration order on
- * every nav render, each receiving the previous one's output.
- *
- * Prefer declaring `navMenuTransforms` on your dashboard extension over calling this
- * directly; this exists for code that runs outside `defineDashboardExtension`.
- *
- * @since 3.8.0
- */
-export function addNavMenuTransform(transform: NavMenuTransform) {
-    globalRegistry.get('navMenuTransforms').push(transform);
 }

@@ -11,11 +11,7 @@ import {
     SidebarMenuSubItem,
     useSidebar,
 } from '@/vdb/components/ui/sidebar.js';
-import {
-    getNavMenuTransforms,
-    NavMenuItem,
-    NavMenuSection,
-} from '@/vdb/framework/nav-menu/nav-menu-extensions.js';
+import { NavMenuItem, NavMenuSection } from '@/vdb/framework/nav-menu/nav-menu-extensions.js';
 import { resolveNavMenu } from '@/vdb/framework/nav-menu/resolve-nav-menu.js';
 import { useDashboardUserContext } from '@/vdb/hooks/use-dashboard-user-context.js';
 import { cn } from '@/vdb/lib/utils.js';
@@ -94,21 +90,20 @@ function CollapsedSectionMenu({
 export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavMenuItem> }>) {
     const router = useRouter();
     const routerState = useRouterState();
-    // With no transforms and no isVisible predicate anywhere, the resolved output cannot
-    // depend on administrator custom fields. That makes this the signal for both the
-    // request and the render gate: a vanilla install neither fetches the custom fields nor
-    // waits on them, which would otherwise mean an extra Admin API round trip and a blank
-    // sidebar on every page load for no benefit.
-    const hasUserDependentRules = React.useMemo(() => {
-        if (getNavMenuTransforms().length > 0) {
-            return true;
-        }
-        return items.some(
-            entry =>
-                entry.isVisible !== undefined ||
-                ('items' in entry && (entry.items ?? []).some(i => i.isVisible !== undefined)),
-        );
-    }, [items]);
+    // With no isVisible predicate anywhere, the resolved output cannot depend on
+    // administrator custom fields. That makes this the signal for both the request and the
+    // render gate: a vanilla install neither fetches the custom fields nor waits on them,
+    // which would otherwise mean an extra Admin API round trip and a blank sidebar on
+    // every page load for no benefit.
+    const hasUserDependentRules = React.useMemo(
+        () =>
+            items.some(
+                entry =>
+                    entry.isVisible !== undefined ||
+                    ('items' in entry && (entry.items ?? []).some(i => i.isVisible !== undefined)),
+            ),
+        [items],
+    );
 
     const { ctx, ready } = useDashboardUserContext({ includeCustomFields: hasUserDependentRules });
     const { i18n } = useLingui();
@@ -170,13 +165,7 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
             // Do not evaluate visibility rules before the user context is fully
             // loaded: rules reading customFields would briefly see them absent and
             // the menu would flicker.
-            hasUserDependentRules && !ready
-                ? []
-                : // Copy the array: `items` is the live registry array, and transforms are
-                  // third-party code that must never be handed it. A transform that mutates
-                  // `config.sections` in place instead of returning a new object would
-                  // otherwise corrupt global nav state on every render.
-                  resolveNavMenu({ sections: [...items] }, ctx, getNavMenuTransforms()),
+            hasUserDependentRules && !ready ? [] : resolveNavMenu({ sections: items }, ctx),
         [items, ctx, ready, hasUserDependentRules],
     );
 
@@ -192,10 +181,7 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
     });
 
     const topSections = React.useMemo(() => resolved.filter(s => s.placement === 'top'), [resolved]);
-    const bottomSections = React.useMemo(
-        () => resolved.filter(s => s.placement === 'bottom'),
-        [resolved],
-    );
+    const bottomSections = React.useMemo(() => resolved.filter(s => s.placement === 'bottom'), [resolved]);
 
     const shortcutMap = React.useMemo(
         () => buildShortcutMap([...topSections, ...bottomSections]),
@@ -323,10 +309,7 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
         // on `resolved`, and an unconditional fresh Set would turn any future
         // destabilisation of `ctx` from wasted work into an infinite render loop.
         setOpenTopSectionIds(prev => {
-            if (
-                prev.size === activeTopSections.size &&
-                [...activeTopSections].every(id => prev.has(id))
-            ) {
+            if (prev.size === activeTopSections.size && [...activeTopSections].every(id => prev.has(id))) {
                 return prev;
             }
             return activeTopSections;

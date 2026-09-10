@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { buildDashboardUserContext } from '../user-context/dashboard-user-context.js';
+import {
+    buildDashboardUserContext,
+    type DashboardUserContext,
+} from '../user-context/dashboard-user-context.js';
 
 import { NavMenuConfig, NavMenuItem, NavMenuSection } from './nav-menu-extensions.js';
 import { setNavVisibility } from './nav-menu-helpers.js';
@@ -53,7 +56,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['first', 'second']);
         expect(itemIds(result[0])).toEqual(['zebra', 'aardvark', 'apple']);
@@ -67,7 +69,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 { id: 'c', title: 'Aardvark', url: '/c', placement: 'top', order: 100 },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['c', 'a', 'b']);
     });
@@ -91,7 +92,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 },
             ]),
             ctxWith([]),
-            [],
         );
         expect(itemIds(result[0])).toEqual(['products']);
     });
@@ -107,7 +107,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 },
             ]),
             ctxWith([]),
-            [],
         );
         expect(result).toEqual([]);
     });
@@ -119,7 +118,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 { id: 'no', title: 'No', url: '/no', placement: 'top', requiresPermission: 'Deny' },
             ]),
             ctxWith(['Read']),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['ok']);
     });
@@ -131,7 +129,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 { id: 'bottom', title: 'Bottom', url: '/b', placement: 'bottom' },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.placement)).toEqual(['bottom', 'top']);
     });
@@ -155,7 +152,6 @@ describe('resolveNavMenu - existing behaviour', () => {
                 },
             ]),
             ctxWith(['Read']),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['anyOf']);
     });
@@ -170,13 +166,12 @@ describe('resolveNavMenu - existing behaviour', () => {
                 { id: 'explicit', title: 'ZZZ', url: '/e', placement: 'top', order: 100 },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['explicit', 'noOrder']);
     });
 });
 
-describe('resolveNavMenu - transforms and isVisible', () => {
+describe('resolveNavMenu - isVisible', () => {
     it('hides an item whose isVisible returns false', () => {
         const result = resolveNavMenu(
             config([
@@ -184,7 +179,6 @@ describe('resolveNavMenu - transforms and isVisible', () => {
                 { id: 'b', title: 'B', url: '/b', placement: 'top', isVisible: () => false },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['a']);
     });
@@ -208,7 +202,6 @@ describe('resolveNavMenu - transforms and isVisible', () => {
                 })),
             ),
             ctxWith(['Read']),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['both']);
     });
@@ -225,71 +218,41 @@ describe('resolveNavMenu - transforms and isVisible', () => {
                 },
             ]),
             ctxWith(),
-            [],
         );
         expect(result).toEqual([]);
     });
 
-    it('applies transforms in order, each seeing the previous output', () => {
-        const seen: string[] = [];
-        const result = resolveNavMenu(
-            config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [
-                cfg => {
-                    seen.push('first');
-                    return {
-                        sections: [...cfg.sections, { id: 'b', title: 'B', url: '/b', placement: 'top' }],
-                    };
-                },
-                cfg => {
-                    seen.push(`second saw ${cfg.sections.length}`);
-                    return cfg;
-                },
-            ],
+    // A `navSections` function runs once, at registration. What it attaches is still
+    // decided per user on every render, which is what makes it the route for
+    // conditioning an entry your own plugin did not declare.
+    it('applies a predicate attached at registration time to each user separately', () => {
+        const isFloorStaff = (c: DashboardUserContext) => c.hasPermissions(['FloorStaff']);
+        const atLoad = setNavVisibility(
+            config([
+                { id: 'catalog', title: 'Catalog', url: '/c', placement: 'top' },
+                { id: 'pos', title: 'POS', url: '/pos', placement: 'top' },
+            ]),
+            ['catalog'],
+            c => !isFloorStaff(c),
         );
-        expect(seen).toEqual(['first', 'second saw 2']);
-        expect(result.map(s => s.id)).toEqual(['a', 'b']);
+
+        expect(resolveNavMenu(atLoad, ctxWith(['FloorStaff'])).map(s => s.id)).toEqual(['pos']);
+        expect(resolveNavMenu(atLoad, ctxWith()).map(s => s.id)).toEqual(['catalog', 'pos']);
     });
 
-    it('sorts sections added by a transform along with the rest', () => {
-        const result = resolveNavMenu(
-            config([{ id: 'existing', title: 'Existing', url: '/e', placement: 'top', order: 200 }]),
-            ctxWith(),
-            [
-                cfg => ({
-                    sections: [
-                        ...cfg.sections,
-                        { id: 'added', title: 'Added', url: '/a', placement: 'top', order: 100 },
-                    ],
-                }),
-            ],
-        );
-        // 'added' is appended last but has the lower order, so it must sort first.
-        // Sorting before applying transforms would yield ['existing', 'added'].
-        expect(result.map(s => s.id)).toEqual(['added', 'existing']);
-    });
-
-    it('lets two transforms both condition the same item without clobbering', () => {
-        const and =
-            (id: string, pred: () => boolean) =>
-            (cfg: NavMenuConfig): NavMenuConfig => ({
-                sections: cfg.sections.map(s => {
-                    if (s.id !== id) return s;
-                    const prev = s.isVisible;
-                    return { ...s, isVisible: (c: any) => (prev?.(c) ?? true) && pred() };
-                }),
-            });
-        // Order matters: the FIRST transform hides, the SECOND would show on its own.
+    it('lets two plugins condition the same entry without clobbering', () => {
+        // Order matters: the FIRST call hides, the SECOND would show on its own.
         // Correct composition keeps it hidden. An implementation that overwrote
-        // isVisible instead of ANDing would let the second transform win and the
-        // entry would appear - so this ordering is what makes the test meaningful.
-        const result = resolveNavMenu(
+        // isVisible instead of ANDing would let the second call win and the entry
+        // would appear - so this ordering is what makes the test meaningful.
+        const first = setNavVisibility(
             config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [and('a', () => false), and('a', () => true)],
+            ['a'],
+            () => false,
         );
-        expect(result).toEqual([]);
+        const second = setNavVisibility(first, ['a'], () => true);
+
+        expect(resolveNavMenu(second, ctxWith())).toEqual([]);
     });
 
     it('keeps an item visible and logs once when its predicate throws', () => {
@@ -307,45 +270,9 @@ describe('resolveNavMenu - transforms and isVisible', () => {
                 },
             ]),
             ctxWith(),
-            [],
         );
         expect(result.map(s => s.id)).toEqual(['a']);
         expect(warn).toHaveBeenCalledTimes(1);
-        warn.mockRestore();
-    });
-
-    it('falls back to the untransformed config when a transform throws', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-        const result = resolveNavMenu(
-            config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [
-                () => {
-                    throw new Error('boom');
-                },
-            ],
-        );
-        expect(result.map(s => s.id)).toEqual(['a']);
-        expect(warn).toHaveBeenCalled();
-        warn.mockRestore();
-    });
-
-    it("keeps an earlier transform's output when a later transform throws", () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-        const result = resolveNavMenu(
-            config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [
-                cfg => ({
-                    sections: [...cfg.sections, { id: 'b', title: 'B', url: '/b', placement: 'top' }],
-                }),
-                () => {
-                    throw new Error('boom');
-                },
-            ],
-        );
-        expect(result.map(s => s.id)).toEqual(['a', 'b']);
-        expect(warn).toHaveBeenCalled();
         warn.mockRestore();
     });
 
@@ -353,30 +280,16 @@ describe('resolveNavMenu - transforms and isVisible', () => {
         // End to end version of the nav-menu-helpers case: the entry must be absent
         // from the resolved menu, not merely evaluate to false in isolation.
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-        const result = resolveNavMenu(
+        const hidden = setNavVisibility(
             config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [
-                cfg => setNavVisibility(cfg, ['a'], () => false),
-                cfg =>
-                    setNavVisibility(cfg, ['a'], () => {
-                        throw new Error('boom');
-                    }),
-            ],
+            ['a'],
+            () => false,
         );
-        expect(result).toEqual([]);
-        warn.mockRestore();
-    });
+        const withBrokenPredicate = setNavVisibility(hidden, ['a'], () => {
+            throw new Error('boom');
+        });
 
-    it('skips a transform that returns an invalid shape', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-        const result = resolveNavMenu(
-            config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ctxWith(),
-            [(() => ({})) as any],
-        );
-        expect(result.map(s => s.id)).toEqual(['a']);
-        expect(warn).toHaveBeenCalled();
+        expect(resolveNavMenu(withBrokenPredicate, ctxWith())).toEqual([]);
         warn.mockRestore();
     });
 });

@@ -1,6 +1,6 @@
 import type { DashboardUserContext } from '../user-context/dashboard-user-context.js';
 
-import { NavMenuConfig, NavMenuItem, NavMenuSection, NavMenuTransform } from './nav-menu-extensions.js';
+import { NavMenuConfig, NavMenuItem, NavMenuSection } from './nav-menu-extensions.js';
 
 /**
  * Sorts by the optional `order` prop ascending, then alphabetically by title.
@@ -69,38 +69,10 @@ function isVisibleFor(item: NavMenuItem | NavMenuSection, ctx: DashboardUserCont
     }
 }
 
-function applyTransforms(
-    config: NavMenuConfig,
-    ctx: DashboardUserContext,
-    transforms: NavMenuTransform[],
-): NavMenuConfig {
-    let result = config;
-    for (const [index, transform] of transforms.entries()) {
-        try {
-            const next = transform(result, ctx);
-            if (next && Array.isArray(next.sections)) {
-                result = next;
-            } else {
-                warnOnce(
-                    `transform-shape:${index}`,
-                    `[Dashboard] A navMenuTransform at index ${index} returned an invalid result. ` +
-                        `Expected an object with a "sections" array; the transform was skipped.`,
-                );
-            }
-        } catch (e) {
-            warnOnce(
-                `transform-threw:${index}`,
-                `[Dashboard] A navMenuTransform at index ${index} threw and was skipped. ${String(e)}`,
-            );
-        }
-    }
-    return result;
-}
-
 /**
  * @description
- * Applies nav menu transforms, then filters and sorts the result. Pure, so it can be
- * unit tested without rendering.
+ * Filters and sorts the nav menu config for the given user. Pure, so it can be unit
+ * tested without rendering.
  *
  * Returns entries of both placements in one pass; callers partition by `placement`.
  *
@@ -109,11 +81,8 @@ function applyTransforms(
 export function resolveNavMenu(
     config: NavMenuConfig,
     ctx: DashboardUserContext,
-    transforms: NavMenuTransform[],
 ): Array<NavMenuSection | NavMenuItem> {
-    const transformed = applyTransforms(config, ctx, transforms);
-
-    return transformed.sections
+    return config.sections
         .slice()
         .sort(sortByOrder)
         .map(section => {

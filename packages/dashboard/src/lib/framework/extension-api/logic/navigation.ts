@@ -1,10 +1,8 @@
 import {
     addNavMenuItem,
     addNavMenuSection,
-    addNavMenuTransform,
     NavMenuConfig,
     NavMenuItem,
-    NavMenuTransform,
 } from '../../nav-menu/nav-menu-extensions.js';
 import { registerRoute } from '../../page/page-api.js';
 import { DashboardNavSectionDefinition, DashboardRouteDefinition } from '../types/navigation.js';
@@ -12,13 +10,9 @@ import { DashboardNavSectionDefinition, DashboardRouteDefinition } from '../type
 export function registerNavigationExtensions(
     navSections?: DashboardNavSectionDefinition[] | ((config: NavMenuConfig) => NavMenuConfig),
     routes?: DashboardRouteDefinition[],
-    navMenuTransforms?: NavMenuTransform[],
 ): ((config: NavMenuConfig) => NavMenuConfig) | undefined {
     const navMenuModifier = registerNavSections(navSections);
     registerRoutes(routes);
-    for (const transform of navMenuTransforms ?? []) {
-        addNavMenuTransform(transform);
-    }
     return navMenuModifier;
 }
 

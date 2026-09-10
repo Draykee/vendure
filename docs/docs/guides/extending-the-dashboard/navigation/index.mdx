@@ -46,6 +46,15 @@ The dashboard comes with several built-in sections that can receive route `navMe
 
 The Insights entry has the ID `insights`, but it is a top-level navigation item, not a section with child items. Do not use `insights` as a route `navMenuItem.sectionId`.
 
+These ids, and the ids of the items inside each section, are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Prefer them over string literals wherever you target a built-in entry, so that a rename turns into a compile error in your plugin:
+
+```ts
+import { BUILT_IN_NAV_ITEM_IDS, BUILT_IN_NAV_SECTION_IDS } from '@vendure/dashboard';
+
+BUILT_IN_NAV_SECTION_IDS.Catalog; // 'catalog'
+BUILT_IN_NAV_ITEM_IDS.Orders; // 'orders'
+```
+
 ### Finding Section IDs & Ordering
 
 You can find the available IDs & their order value for all navigation sections and items using [Dev mode](/extending-the-dashboard/extending-overview/#dev-mode):
@@ -248,13 +257,15 @@ Use [Dev Mode](/extending-the-dashboard/extending-overview/#dev-mode) or the [Ex
 
 ## User-Aware Navigation
 
-The `navSections` function form above runs once, when your extension is registered. It has no access to the logged-in administrator, so it cannot be used to show different navigation to different users. For that, use `navMenuTransforms` or the `isVisible` predicate. Both receive a [DashboardUserContext](/reference/dashboard/extensions-api/navigation#dashboardusercontext) describing the current administrator.
+The `isVisible` predicate decides per administrator whether an entry is shown. It receives a [DashboardUserContext](/reference/dashboard/extensions-api/navigation#dashboardusercontext) and is evaluated on every nav render.
 
-### Per-user changes with navMenuTransforms
+Where you declare the predicate depends on whose entry it is. Use `isVisible` directly on the entries your own plugin declares. To reach an entry your plugin did not declare, a built-in section or one belonging to another plugin, attach the predicate from the function form of `navSections`.
 
-A [NavMenuTransform](/reference/dashboard/extensions-api/navigation#navmenutransform) receives the whole nav config plus the user context and returns a new config. Transforms run on every nav render, and they compose: each one receives the previous one's output, so several plugins can adjust the same menu without overwriting each other.
+### Reaching another plugin's entries with navSections
 
-This example hides everything except a point-of-sale section from floor staff:
+The function form of `navSections` runs once, at registration, and sees the fully assembled config. It has no access to the logged-in administrator and does not need one. The `isVisible` predicate it attaches is evaluated later, on every nav render, with the user context.
+
+This example leaves floor staff with only the point-of-sale section:
 
 ```tsx title="src/plugins/pos/dashboard/index.tsx"
 import { defineDashboardExtension, keepOnlyNavItems } from '@vendure/dashboard';
@@ -263,11 +274,32 @@ import type { DashboardUserContext } from '@vendure/dashboard';
 const isFloorStaff = (ctx: DashboardUserContext) => ctx.roles.some(role => role.code === 'floor-staff');
 
 defineDashboardExtension({
-    navMenuTransforms: [(config, ctx) => (isFloorStaff(ctx) ? keepOnlyNavItems(config, ['pos']) : config)],
+    navSections: config => keepOnlyNavItems(config, ['pos'], isFloorStaff),
 });
 ```
 
-[keepOnlyNavItems](/reference/dashboard/extensions-api/navigation#keeponlynavitems) hides every entry not named in the list; naming a section keeps all of its items. Prefer it, and the related [setNavVisibility](/reference/dashboard/extensions-api/navigation#setnavvisibility), over spreading `isVisible` yourself, because a plain spread silently discards a predicate that another plugin already set on the same entry.
+[keepOnlyNavItems](/reference/dashboard/extensions-api/navigation#keeponlynavitems) hides every entry not named in the list, and naming a section keeps all of its items. The third argument applies that hiding only to the administrators the predicate matches. Without it, every entry not named is hidden from everybody.
+
+The other helper, [setNavVisibility](/reference/dashboard/extensions-api/navigation#setnavvisibility), names the entries to condition instead of the entries to keep:
+
+```tsx
+import { BUILT_IN_NAV_SECTION_IDS, setNavVisibility } from '@vendure/dashboard';
+
+defineDashboardExtension({
+    navSections: config =>
+        setNavVisibility(
+            config,
+            [BUILT_IN_NAV_SECTION_IDS.Catalog, BUILT_IN_NAV_SECTION_IDS.Sales],
+            ctx => !isFloorStaff(ctx),
+        ),
+});
+```
+
+Prefer both over spreading `isVisible` yourself, because a plain spread silently discards a predicate that another plugin already set on the same entry.
+
+`navSections` is either the array form or the function form, never both. A plugin which declares its own section and also adjusts the assembled menu needs two `defineDashboardExtension` calls. The array form has to run first, so that a route's `navMenuItem.sectionId` has a section to attach to.
+
+An id which matches no entry has no effect, and with `keepOnlyNavItems` one typo hides every other entry. The dashboard warns about unmatched ids in development. For built-in entries, `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS` remove the possibility.
 
 ### Conditioning your own entry with isVisible
 
@@ -301,25 +333,25 @@ const isSellerHere = (ctx: DashboardUserContext) =>
 
 Note also that `hasPermissions()` has OR semantics despite the plural name. It returns true when the administrator holds ANY of the listed permissions on the active channel, not all of them.
 
-### Predicates and transforms must be pure
+### Predicates must be pure
 
-Both run on every nav render, and the framework makes no promise about how often. Keep them pure, synchronous and cheap: do not fetch data, do not mutate the config you are handed, and do not depend on how many times you are called. The framework hands your transform a fresh top-level `sections` array, so appending or removing entries cannot damage anything. The section objects inside it are the framework's own, though: mutating a section or its `items` array in place corrupts the menu for the rest of the session. Always return new objects, as the examples above do.
+An `isVisible` predicate runs on every nav render, and the framework makes no promise about how often. Keep it pure, synchronous and cheap: do not fetch data, do not mutate anything, and do not depend on how many times you are called.
+
+A `navSections` function runs only once, but it is handed the framework's own section objects. Mutating a section or its `items` array in place corrupts the menu for the rest of the session. Always return new objects, as `setNavVisibility` and `keepOnlyNavItems` do.
 
 ### How several plugins compose
 
-More than one plugin can adjust the same menu, and the two extension points combine differently.
-
 `isVisible` predicates are ANDed. When `setNavVisibility` or `keepOnlyNavItems` add a predicate to an entry that already has one, both are kept and both must pass. The practical rule is that **any plugin can hide an entry and no plugin can force one to appear**. This is also why you should use those helpers rather than spreading `isVisible` yourself: a plain spread replaces whatever another plugin already set, and nothing warns you.
 
-`navMenuTransforms` are chained in registration order, which follows the order of the `plugins` array in your Vendure config. Each transform receives the previous one's output, so where two transforms genuinely disagree about the structure, for example because both rebuild `sections`, the later one wins.
+`navSections` functions are chained in registration order, which follows the order of the `plugins` array in your Vendure config. Each receives the previous one's output. Where two of them rebuild `sections` and disagree about the result, the later one wins.
 
-Registration and transforms happen at different times, and this trips people up. Every `navSections` entry and every route's `navMenuItem`, from every plugin, is collected before any transform runs. A transform therefore always sees the fully assembled menu, including entries contributed by plugins registered after it. Reordering the `plugins` array does not change which entries a transform can see.
+Registration and modification happen at different times. Every `navSections` array entry and every route's `navMenuItem`, from every plugin, is collected before any `navSections` function runs. A `navSections` function therefore always sees the fully assembled menu, including entries contributed by plugins registered after it. Reordering the `plugins` array does not change which entries it can see.
 
 One consequence is worth stating plainly. `keepOnlyNavItems` is a whitelist, so it hides entries added by other plugins just as readily as built-in ones:
 
 ```ts
 // Hides 'catalog', 'sales' and so on, but also any section another plugin added.
-navMenuTransforms: [(config, ctx) => (isFloorStaff(ctx) ? keepOnlyNavItems(config, ['pos']) : config)],
+navSections: config => keepOnlyNavItems(config, ['pos'], isFloorStaff),
 ```
 
 That is usually what you want for a locked-down role, since a plugin installed later cannot silently widen what the user sees. If you would rather stay open to other plugins, name their ids alongside your own, or hide the specific built-in sections with `setNavVisibility` instead of keeping only your own. The trade-off is that a section added by a future Vendure release would then be visible until you exclude it.
@@ -330,7 +362,9 @@ None of this is an access control mechanism. Hiding a nav entry only changes wha
 
 ### Are the built-in nav ids stable API?
 
-The ids used throughout this guide (`catalog`, `sales`, `products`, `administrators` and the rest) are what transforms and predicates target, and in practice extensions do depend on them. They are not formally guaranteed. They are not covered by a stability policy, and a future release could rename or restructure one. Nothing will warn you when an id you targeted stops matching: the transform or predicate simply has no effect. If you rely on a built-in id, pin the dashboard version you tested against and re-check the ids after upgrading.
+The ids used throughout this guide (`catalog`, `sales`, `products`, `administrators` and the rest) are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Referring to them through those constants turns a rename into a compile error in your plugin, instead of a predicate which quietly stops matching.
+
+Restructuring is a different matter. A future release could move an item into another section or drop it, and no constant catches that. When you target a built-in entry, re-check the sidebar after upgrading.
 
 ## Unauthenticated Routes
 

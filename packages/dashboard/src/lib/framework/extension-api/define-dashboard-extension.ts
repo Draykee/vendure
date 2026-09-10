@@ -111,11 +111,7 @@ export function executeDashboardExtensionCallbacks() {
 export function defineDashboardExtension(extension: DashboardExtension) {
     globalRegistry.get('registerDashboardExtensionCallbacks').add(() => {
         // Register navigation extensions (nav sections and routes)
-        const navMenuModifier = registerNavigationExtensions(
-            extension.navSections,
-            extension.routes,
-            extension.navMenuTransforms,
-        );
+        const navMenuModifier = registerNavigationExtensions(extension.navSections, extension.routes);
         if (navMenuModifier) {
             globalRegistry.get('navMenuModifiers').push(navMenuModifier);
         }

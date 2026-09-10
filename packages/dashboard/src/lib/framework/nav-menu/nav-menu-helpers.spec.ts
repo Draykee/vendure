@@ -150,3 +150,60 @@ describe('composition of throwing predicates', () => {
         warn.mockRestore();
     });
 });
+
+describe('keepOnlyNavItems with a `when` predicate', () => {
+    const isFloorStaff = (c: typeof ctx) => c.hasPermissions(['FloorStaff']);
+    const ctxWith = (permissions: string[]) =>
+        buildDashboardUserContext({
+            administrator: undefined,
+            channels: undefined,
+            activeChannel: undefined,
+            customFields: undefined,
+            hasPermissions: required => required.some(p => permissions.includes(p)),
+        });
+
+    it('applies the whitelist only to administrators the predicate matches', () => {
+        const result = keepOnlyNavItems(sample(), ['pos-home'], isFloorStaff);
+
+        expect(section(result, 'catalog').isVisible?.(ctxWith(['FloorStaff']))).toBe(false);
+        expect(section(result, 'catalog').isVisible?.(ctxWith([]))).toBe(true);
+    });
+
+    it('leaves the named entries alone for both', () => {
+        const result = keepOnlyNavItems(sample(), ['pos-home'], isFloorStaff);
+
+        expect(items(result, 'pos')[0].isVisible).toBeUndefined();
+        expect(section(result, 'pos').isVisible).toBeUndefined();
+    });
+});
+
+// An id that matches nothing has no effect at all, and with keepOnlyNavItems a single
+// typo hides the entire menu. Neither is discoverable without a warning.
+describe('unmatched ids', () => {
+    it('warns when setNavVisibility is given an id that matches nothing', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        setNavVisibility(sample(), ['products', 'produtcs'], () => false);
+
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('"produtcs"'));
+        warn.mockRestore();
+    });
+
+    it('warns when keepOnlyNavItems is given an id that matches nothing', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        keepOnlyNavItems(sample(), ['pos-hom']);
+
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('"pos-hom"'));
+        warn.mockRestore();
+    });
+
+    it('stays quiet when every id matches', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        keepOnlyNavItems(
+            setNavVisibility(sample(), ['insights'], () => true),
+            ['catalog', 'pos-home'],
+        );
+
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+});

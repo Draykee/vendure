@@ -2,12 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    addNavMenuTransform,
-    getNavMenuTransforms,
-    type NavMenuItem,
-    type NavMenuSection,
-} from '../../framework/nav-menu/nav-menu-extensions.js';
+import type { NavMenuItem, NavMenuSection } from '../../framework/nav-menu/nav-menu-extensions.js';
 import { resetNavMenuWarnings } from '../../framework/nav-menu/resolve-nav-menu.js';
 import {
     buildDashboardUserContext,
@@ -153,14 +148,11 @@ describe('NavMain', () => {
         useDashboardUserContextMock.mockReset();
         hasPermissionsMock.mockReset();
         hasPermissionsMock.mockReturnValue(true);
-        // The transform registry is global; leaking one transform into a later test
-        // would silently flip `hasUserDependentRules` and change what is rendered.
-        getNavMenuTransforms().length = 0;
         resetNavMenuWarnings();
     });
 
-    // Master-equivalence: with no isVisible predicates and no transforms, NavMain must
-    // render exactly the entries a vanilla install has always shown, sorted by `order`.
+    // Master-equivalence: with no isVisible predicates, NavMain must render exactly the
+    // entries a vanilla install has always shown, sorted by `order`.
     it('renders a vanilla config in order, top placement before bottom', () => {
         expect(getRenderedNavIds(render(vanillaConfig()))).toEqual(VANILLA_IDS);
     });
@@ -216,10 +208,12 @@ describe('NavMain', () => {
         expect(getRenderedNavIds(render(items, { ready: false }))).toEqual([]);
     });
 
-    it('renders nothing while the user context is not ready and a transform is registered', () => {
-        addNavMenuTransform(config => config);
+    it('renders nothing while the user context is not ready and a nested item carries a predicate', () => {
+        const items = vanillaConfig();
+        const sales = items.find(entry => entry.id === 'sales') as NavMenuSection;
+        (sales.items ?? [])[0].isVisible = () => true;
 
-        expect(getRenderedNavIds(render(vanillaConfig(), { ready: false }))).toEqual([]);
+        expect(getRenderedNavIds(render(items, { ready: false }))).toEqual([]);
     });
 
     // The gate is scoped: a vanilla install has no user-dependent rules, so its output
@@ -247,10 +241,15 @@ describe('NavMain', () => {
         expect(useDashboardUserContextMock).toHaveBeenCalledWith({ includeCustomFields: true });
     });
 
-    it('loads administrator custom fields when a transform is registered', () => {
-        addNavMenuTransform(config => config);
+    // A `navSections` function attaching a predicate to a nested item is the documented
+    // way to condition an entry your plugin did not declare, so the scan has to look
+    // inside sections, not only at the top level.
+    it('loads administrator custom fields when a nested item carries a predicate', () => {
+        const items = vanillaConfig();
+        const sales = items.find(entry => entry.id === 'sales') as NavMenuSection;
+        (sales.items ?? [])[0].isVisible = () => true;
 
-        render(vanillaConfig());
+        render(items);
 
         expect(useDashboardUserContextMock).toHaveBeenCalledWith({ includeCustomFields: true });
     });
