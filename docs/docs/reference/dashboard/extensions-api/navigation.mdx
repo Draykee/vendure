@@ -254,7 +254,7 @@ The ids of the navigation items nested inside the built-in sections.
 Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`),
 `OptionGroups` (`option-groups`), `Facets` (`facets`), `Collections` (`collections`),
 `Assets` (`assets`). Under `sales`: `Orders` (`orders`). Under `customers`:
-`Customers` (`customers`), `CustomerGroups` (`customer-groups`). Under `marketing`:
+`Customers` (`customer-list`), `CustomerGroups` (`customer-groups`). Under `marketing`:
 `Promotions` (`promotions`). Under `system`: `JobQueue` (`job-queue`),
 `ScheduledTasks` (`scheduled-tasks`), `SettingsStore` (`settings-store`),
 `ApiKeys` (`api-keys`). Under `settings`: `Sellers` (`sellers`), `Channels` (`channels`),
@@ -266,7 +266,7 @@ Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`)
 
 ## BuiltInNavSectionId
 
-<GenerationInfo sourceFile="packages/dashboard/src/lib/framework/nav-menu/nav-menu-ids.ts" sourceLine="92" packageName="@vendure/dashboard" since="3.8.0" />
+<GenerationInfo sourceFile="packages/dashboard/src/lib/framework/nav-menu/nav-menu-ids.ts" sourceLine="95" packageName="@vendure/dashboard" since="3.8.0" />
 
 The id of a built-in top-level navigation entry.
 
@@ -275,7 +275,7 @@ type BuiltInNavSectionId = (typeof BUILT_IN_NAV_SECTION_IDS)[keyof typeof BUILT_
 ```
 ## BuiltInNavItemId
 
-<GenerationInfo sourceFile="packages/dashboard/src/lib/framework/nav-menu/nav-menu-ids.ts" sourceLine="102" packageName="@vendure/dashboard" since="3.8.0" />
+<GenerationInfo sourceFile="packages/dashboard/src/lib/framework/nav-menu/nav-menu-ids.ts" sourceLine="105" packageName="@vendure/dashboard" since="3.8.0" />
 
 The id of a built-in navigation item.
 
@@ -440,8 +440,8 @@ interface DashboardAdministrator {
 
 <GenerationInfo sourceFile="packages/dashboard/src/lib/framework/user-context/dashboard-user-context.ts" sourceLine="93" packageName="@vendure/dashboard" since="3.8.0" />
 
-Describes the logged-in dashboard user. Passed to nav menu transforms and to
-`isVisible` predicates so they can decide what this user should see.
+Describes the logged-in dashboard user. Passed to `isVisible` predicates so they
+can decide what this user should see.
 
 This controls presentation only. It is never an authorization mechanism: a user who
 can call an operation on the Admin API can still call it regardless of what the

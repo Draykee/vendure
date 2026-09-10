@@ -50,7 +50,7 @@ export type NavigationShortcut =
 /** The shortcuts reserved by the Dashboard's built-in navigation items. */
 export const BUILT_IN_NAVIGATION_SHORTCUTS = {
     a: 'assets',
-    c: 'customers',
+    c: 'customer-list',
     d: 'insights',
     m: 'promotions',
     o: 'orders',

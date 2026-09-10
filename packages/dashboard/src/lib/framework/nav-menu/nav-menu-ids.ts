@@ -32,7 +32,7 @@ export const BUILT_IN_NAV_SECTION_IDS = {
  * Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`),
  * `OptionGroups` (`option-groups`), `Facets` (`facets`), `Collections` (`collections`),
  * `Assets` (`assets`). Under `sales`: `Orders` (`orders`). Under `customers`:
- * `Customers` (`customers`), `CustomerGroups` (`customer-groups`). Under `marketing`:
+ * `Customers` (`customer-list`), `CustomerGroups` (`customer-groups`). Under `marketing`:
  * `Promotions` (`promotions`). Under `system`: `JobQueue` (`job-queue`),
  * `ScheduledTasks` (`scheduled-tasks`), `SettingsStore` (`settings-store`),
  * `ApiKeys` (`api-keys`). Under `settings`: `Sellers` (`sellers`), `Channels` (`channels`),
@@ -57,7 +57,10 @@ export const BUILT_IN_NAV_ITEM_IDS = {
     // sales
     Orders: 'orders',
     // customers
-    Customers: 'customers',
+    // Not 'customers': that is the id of the section this item sits in, and the
+    // visibility helpers match sections and items from one id space, so a shared
+    // id would target both.
+    Customers: 'customer-list',
     CustomerGroups: 'customer-groups',
     // marketing
     Promotions: 'promotions',
