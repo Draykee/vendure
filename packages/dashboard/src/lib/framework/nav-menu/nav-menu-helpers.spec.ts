@@ -4,7 +4,7 @@ import { buildDashboardUserContext } from '../user-context/dashboard-user-contex
 
 import { NavMenuConfig, NavMenuItem, NavMenuSection } from './nav-menu-extensions.js';
 import { keepOnlyNavItems, setNavVisibility } from './nav-menu-helpers.js';
-import { resetNavMenuWarnings } from './resolve-nav-menu.js';
+import { resetNavMenuWarnings, resolveNavMenu } from './resolve-nav-menu.js';
 
 const ctx = buildDashboardUserContext({
     administrator: undefined,
@@ -204,6 +204,48 @@ describe('unmatched ids', () => {
         );
 
         expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+});
+
+// A section and one of its items may carry the same id, in which case both helpers
+// target both entries, and the unmatched-id warning cannot fire, because the id did
+// match. The built-in ids are kept disjoint (see nav-menu-ids.spec.ts); a plugin's
+// need not be.
+describe('an id shared by a section and one of its items', () => {
+    const shared = (): NavMenuConfig => ({
+        sections: [
+            {
+                id: 'reports',
+                title: 'Reports',
+                placement: 'top',
+                items: [
+                    { id: 'reports', title: 'Reports', url: '/reports' },
+                    { id: 'exports', title: 'Exports', url: '/exports' },
+                ],
+            },
+        ],
+    });
+
+    it('warns that setNavVisibility targeted both', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const result = setNavVisibility(shared(), ['reports'], () => false);
+
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('names both a section and an item'));
+        // Both really are hidden, so the section goes with the item.
+        expect(section(result, 'reports').isVisible?.(ctx)).toBe(false);
+        expect(items(result, 'reports')[0].isVisible?.(ctx)).toBe(false);
+        warn.mockRestore();
+    });
+
+    it('warns that keepOnlyNavItems kept an item it was not given', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const result = keepOnlyNavItems(shared(), ['reports']);
+
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('names both a section and an item'));
+        // 'exports' was never named, but the section match keeps every item.
+        // resolveNavMenu sorts unordered items by title, hence Exports first.
+        expect(resolveNavMenu(result, ctx)[0].items?.map(i => i.id)).toEqual(['exports', 'reports']);
         warn.mockRestore();
     });
 });

@@ -46,7 +46,7 @@ The dashboard comes with several built-in sections that can receive route `navMe
 
 The Insights entry has the ID `insights`, but it is a top-level navigation item, not a section with child items. Do not use `insights` as a route `navMenuItem.sectionId`.
 
-These ids, and the ids of the items inside each section, are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Prefer them over string literals wherever you target a built-in entry, so that a rename turns into a compile error in your plugin:
+These ids, and the ids of the items inside each section, are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Prefer them over string literals wherever you target a built-in entry: if we change an id, your plugin follows it, while a hard-coded string quietly stops matching:
 
 ```ts
 import { BUILT_IN_NAV_ITEM_IDS, BUILT_IN_NAV_SECTION_IDS } from '@vendure/dashboard';
@@ -362,7 +362,7 @@ None of this is an access control mechanism. Hiding a nav entry only changes wha
 
 ### Are the built-in nav ids stable API?
 
-The ids used throughout this guide (`catalog`, `sales`, `products`, `administrators` and the rest) are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Referring to them through those constants turns a rename into a compile error in your plugin, instead of a predicate which quietly stops matching.
+The ids used throughout this guide (`catalog`, `sales`, `products`, `administrators` and the rest) are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Referring to them through those constants means a changed id keeps working, and a removed one is a compile error. A hard-coded string gives you neither: it just stops matching.
 
 Restructuring is a different matter. A future release could move an item into another section or drop it, and no constant catches that. When you target a built-in entry, re-check the sidebar after upgrading.
 

@@ -166,6 +166,10 @@ onto their existing `isVisible`. Matches both sections and nested items.
 Use this rather than spreading `isVisible` yourself: a plain spread silently
 discards a predicate that another plugin already set on the same entry.
 
+Sections and items share one id space, so an id carried by a section and by one of
+its items targets both, and hiding the item hides its whole section. Keep the two
+distinct when you declare your own entries.
+
 This controls presentation only and is never an authorization mechanism.
 
 *Example*
@@ -203,6 +207,10 @@ individually named.
 
 Pass `when` to apply the whitelist only to the administrators it matches. Without it,
 every entry not named is hidden from everybody.
+
+Sections and items share one id space, so an id carried by a section and by one of its
+items keeps every item in that section, not just the one named. Keep the two distinct
+when you declare your own entries.
 
 This controls presentation only and is never an authorization mechanism.
 

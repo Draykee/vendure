@@ -30,24 +30,35 @@ function andPredicate(existing: Predicate | undefined, added: Predicate, id: str
     };
 }
 
+const quote = (ids: string[]) => ids.map(id => `"${id}"`).join(', ');
+
 /**
- * An id which matches no entry has no effect and raises no error. With
- * `keepOnlyNavItems` a single typo in one id hides every other nav entry.
+ * Both failure modes here are otherwise silent. An id which matches no entry has no
+ * effect, and with `keepOnlyNavItems` a single typo hides every other nav entry. An id
+ * carried by both a section and one of its items targets both, so hiding the item takes
+ * its whole section with it.
  */
-function warnOnUnmatchedIds(helper: string, ids: string[], matched: Set<string>) {
+function warnOnIdProblems(helper: string, ids: string[], sections: Set<string>, items: Set<string>) {
     if (process.env.NODE_ENV === 'production') {
         return;
     }
-    const unmatched = ids.filter(id => !matched.has(id));
-    if (unmatched.length === 0) {
-        return;
+    const unmatched = ids.filter(id => !sections.has(id) && !items.has(id));
+    if (unmatched.length) {
+        warnOnce(
+            `${helper}-unmatched:${unmatched.join(',')}`,
+            `[Dashboard] ${helper} was given ${quote(unmatched)}, which ` +
+                `matched no nav entry. Built-in ids are exported as BUILT_IN_NAV_SECTION_IDS and ` +
+                `BUILT_IN_NAV_ITEM_IDS.`,
+        );
     }
-    warnOnce(
-        `${helper}-unmatched:${unmatched.join(',')}`,
-        `[Dashboard] ${helper} was given ${unmatched.map(id => `"${id}"`).join(', ')}, which ` +
-            `matched no nav entry. Built-in ids are exported as BUILT_IN_NAV_SECTION_IDS and ` +
-            `BUILT_IN_NAV_ITEM_IDS.`,
-    );
+    const ambiguous = ids.filter(id => sections.has(id) && items.has(id));
+    if (ambiguous.length) {
+        warnOnce(
+            `${helper}-ambiguous:${ambiguous.join(',')}`,
+            `[Dashboard] ${helper} was given ${quote(ambiguous)}, which names both a section ` +
+                `and an item, so both were targeted. Give the section and the item different ids.`,
+        );
+    }
 }
 
 /**
@@ -57,6 +68,10 @@ function warnOnUnmatchedIds(helper: string, ids: string[], matched: Set<string>)
  *
  * Use this rather than spreading `isVisible` yourself: a plain spread silently
  * discards a predicate that another plugin already set on the same entry.
+ *
+ * Sections and items share one id space, so an id carried by a section and by one of
+ * its items targets both, and hiding the item hides its whole section. Keep the two
+ * distinct when you declare your own entries.
  *
  * This controls presentation only and is never an authorization mechanism.
  *
@@ -72,11 +87,12 @@ function warnOnUnmatchedIds(helper: string, ids: string[], matched: Set<string>)
  */
 export function setNavVisibility(config: NavMenuConfig, ids: string[], predicate: Predicate): NavMenuConfig {
     const target = new Set(ids);
-    const matched = new Set<string>();
+    const matchedSections = new Set<string>();
+    const matchedItems = new Set<string>();
     const sections = config.sections.map(section => {
         const isTarget = target.has(section.id);
         if (isTarget) {
-            matched.add(section.id);
+            matchedSections.add(section.id);
         }
         if (!('items' in section)) {
             return isTarget
@@ -87,7 +103,7 @@ export function setNavVisibility(config: NavMenuConfig, ids: string[], predicate
             if (!target.has(item.id)) {
                 return item;
             }
-            matched.add(item.id);
+            matchedItems.add(item.id);
             return { ...item, isVisible: andPredicate(item.isVisible, predicate, item.id) };
         });
         const next: NavMenuSection = { ...section, items };
@@ -95,7 +111,7 @@ export function setNavVisibility(config: NavMenuConfig, ids: string[], predicate
             ? { ...next, isVisible: andPredicate(section.isVisible, predicate, section.id) }
             : next;
     });
-    warnOnUnmatchedIds('setNavVisibility', ids, matched);
+    warnOnIdProblems('setNavVisibility', ids, matchedSections, matchedItems);
     return { ...config, sections };
 }
 
@@ -108,6 +124,10 @@ export function setNavVisibility(config: NavMenuConfig, ids: string[], predicate
  *
  * Pass `when` to apply the whitelist only to the administrators it matches. Without it,
  * every entry not named is hidden from everybody.
+ *
+ * Sections and items share one id space, so an id carried by a section and by one of its
+ * items keeps every item in that section, not just the one named. Keep the two distinct
+ * when you declare your own entries.
  *
  * This controls presentation only and is never an authorization mechanism.
  *
@@ -123,11 +143,12 @@ export function setNavVisibility(config: NavMenuConfig, ids: string[], predicate
  */
 export function keepOnlyNavItems(config: NavMenuConfig, ids: string[], when?: Predicate): NavMenuConfig {
     const keep = new Set(ids);
-    const matched = new Set<string>();
+    const matchedSections = new Set<string>();
+    const matchedItems = new Set<string>();
     const hide: Predicate = when ? ctx => !when(ctx) : () => false;
     const sections = config.sections.map(section => {
         if (keep.has(section.id)) {
-            matched.add(section.id);
+            matchedSections.add(section.id);
         }
         if (!('items' in section)) {
             return keep.has(section.id)
@@ -141,7 +162,7 @@ export function keepOnlyNavItems(config: NavMenuConfig, ids: string[], when?: Pr
         const keepAllItems = keep.has(section.id);
         const items = (section.items ?? []).map((item: NavMenuItem) => {
             if (keep.has(item.id)) {
-                matched.add(item.id);
+                matchedItems.add(item.id);
             }
             return keepAllItems || keep.has(item.id)
                 ? item
@@ -151,6 +172,6 @@ export function keepOnlyNavItems(config: NavMenuConfig, ids: string[], when?: Pr
         const next: NavMenuSection = { ...section, items };
         return sectionKept ? next : { ...next, isVisible: andPredicate(section.isVisible, hide, section.id) };
     });
-    warnOnUnmatchedIds('keepOnlyNavItems', ids, matched);
+    warnOnIdProblems('keepOnlyNavItems', ids, matchedSections, matchedItems);
     return { ...config, sections };
 }
