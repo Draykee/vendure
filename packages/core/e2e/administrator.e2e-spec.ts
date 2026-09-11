@@ -306,10 +306,9 @@ describe('Administrator resolver', () => {
         expect(result2?.emailAddress).toBe(SUPER_ADMIN_USER_IDENTIFIER);
     });
 
-    // The dashboard selects user -> roles -> channels, which is exactly the depth the
-    // @Relations decorator resolves by default (DEFAULT_DEPTH = 3). Without the join the
-    // response is still correct, just fetched one query per role, so assert the deepest
-    // level explicitly rather than trusting the shape.
+    // The dashboard selects user -> roles -> channels, the full depth the @Relations
+    // decorator resolves by default (DEFAULT_DEPTH = 3). Without the join the response is
+    // the same, fetched one query per role, so assert the deepest level explicitly.
     it('activeAdministrator resolves nested role channels', async () => {
         await adminClient.asSuperAdmin();
 

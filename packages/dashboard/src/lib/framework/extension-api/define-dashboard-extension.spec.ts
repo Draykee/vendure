@@ -348,7 +348,7 @@ describe('defineDashboardExtension - navSections', () => {
         warn.mockRestore();
     });
 
-    // The route by which a plugin conditions an entry it did not declare: the function
+    // The route by which a plugin controls an entry it did not declare: the function
     // form runs after every array-form registration, so the predicate lands on the
     // assembled config and is still in the registry for NavMain to find.
     it('stores a predicate attached by the function form of navSections', () => {

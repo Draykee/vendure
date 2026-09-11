@@ -4,8 +4,8 @@
  * These are the ids to pass as the `sections` of a {@link NavMenuTarget}, or to match on
  * when writing a `navSections` function.
  *
- * Note that `insights` is a link rather than a section, but it occupies a top-level
- * slot in `sections` and is targeted the same way.
+ * `insights` is a link rather than a section, but it occupies a top-level slot in
+ * `sections` and is targeted the same way.
  *
  * `Insights` (`insights`), `Catalog` (`catalog`), `Sales` (`sales`),
  * `Customers` (`customers`), `Marketing` (`marketing`), `System` (`system`),
@@ -30,8 +30,8 @@ export const BUILT_IN_NAV_SECTION_IDS = {
  * The ids of the navigation items nested inside the built-in sections. These are the ids
  * to pass as the `items` of a {@link NavMenuTarget}.
  *
- * Note that a section and an item may share an id, as the Customers section and the
- * Customers item do. This is why a {@link NavMenuTarget} names the two separately.
+ * A section and an item may share an id, as the Customers section and the Customers
+ * item do. This is why a {@link NavMenuTarget} names the two separately.
  *
  * Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`),
  * `OptionGroups` (`option-groups`), `Facets` (`facets`), `Collections` (`collections`),

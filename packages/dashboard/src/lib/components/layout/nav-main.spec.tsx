@@ -228,8 +228,8 @@ describe('NavMain', () => {
         expect(getRenderedNavIds(render(vanillaConfig(), { ready: false }))).toEqual(VANILLA_IDS);
     });
 
-    // The same signal also suppresses the custom fields request, so a vanilla install
-    // does not pay an Admin API round trip on boot for a feature it does not use.
+    // `hasUserDependentRules` also suppresses the custom fields request, so a vanilla
+    // install does not pay an Admin API round trip on boot for a feature it does not use.
     it('opts out of loading administrator custom fields for a vanilla config', () => {
         render(vanillaConfig());
 
@@ -247,7 +247,7 @@ describe('NavMain', () => {
     });
 
     // A `navSections` function attaching a predicate to a nested item is the documented
-    // way to condition an entry your plugin did not declare, so the scan has to look
+    // way to control an entry your plugin did not declare, so the scan has to look
     // inside sections, not only at the top level.
     it('loads administrator custom fields when a nested item carries a predicate', () => {
         const items = vanillaConfig();

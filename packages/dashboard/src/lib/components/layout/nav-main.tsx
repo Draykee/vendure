@@ -162,7 +162,7 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
             resolveNavMenu({ sections: items }, ctx, {
                 // Withhold only the entries with a predicate until the context has
                 // loaded: a rule reading customFields would otherwise briefly see them
-                // absent. Everything else paints straight away.
+                // absent. Everything else renders immediately.
                 userContextPending: hasUserDependentRules && !ready,
             }),
         [items, ctx, ready, hasUserDependentRules],
@@ -295,9 +295,9 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
         }
     };
 
-    // Update open sections when route changes (for client-side navigation), and when
-    // `resolved` first becomes non-empty as the user context settles. useLayoutEffect,
-    // not useEffect: on mount `resolved` is still empty, so the state initializers above
+    // Update open sections when the route changes, and when `resolved` gains the entries
+    // withheld while the user context loaded. useLayoutEffect, not useEffect: the entry
+    // holding the active route can arrive after mount, so the state initializers above
     // cannot know the active section, and correcting it after paint would flash every
     // section collapsed for one frame.
     React.useLayoutEffect(() => {

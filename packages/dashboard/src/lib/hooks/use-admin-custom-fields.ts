@@ -84,11 +84,10 @@ export function useAdminCustomFields({ enabled: enabledByCaller = true }: { enab
     return {
         customFields: readAdminCustomFields(data),
         // `ready` means "done waiting", not "succeeded". The check is on login state
-        // rather than `enabled`, which also waits on serverConfig: there is a window
-        // where the user is logged in, serverConfig has not resolved, and the fields
-        // have genuinely not loaded. `fetchStatus === 'paused'` is the offline case,
-        // where the default networkMode leaves the query pending forever with neither
-        // isSuccess nor isError ever set.
+        // rather than `enabled`: `enabled` also waits on serverConfig, and while that is
+        // unresolved the fields genuinely have not loaded. `fetchStatus === 'paused'` is
+        // the offline case, where the default networkMode leaves the query pending with
+        // neither isSuccess nor isError ever set.
         ready: !enabledByCaller || !user?.id || isSuccess || isError || fetchStatus === 'paused',
     };
 }

@@ -71,9 +71,9 @@ export interface DashboardAdministrator {
     /** The User record behind this administrator. Roles are on `DashboardUserContext.roles`. */
     user: { id: string; identifier: string };
     /**
-     * Administrator custom fields. Undefined until they have loaded; the framework
-     * does not evaluate visibility rules before then, so rules never observe the
-     * unloaded state.
+     * Administrator custom fields. Undefined until they have loaded. An entry
+     * carrying an `isVisible` predicate is not rendered until then, so a rule never
+     * observes the unloaded state.
      */
     customFields?: AdministratorCustomFields & Record<string, unknown>;
 }

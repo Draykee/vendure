@@ -62,8 +62,8 @@ Optional placement to control the position of this section in the sidebar.
 
 A predicate evaluated on every nav render to decide whether this section is
 shown. When it returns false the section and all of its items are hidden. A
-section is also hidden once every item inside it is, since it would open onto
-nothing.
+section is also hidden once every item inside it is, since expanding it would
+show nothing.
 
 Presentation only, never authorization.
 
@@ -268,8 +268,8 @@ The ids of the navigation entries which sit directly in `NavMenuConfig.sections`
 These are the ids to pass as the `sections` of a [NavMenuTarget](/reference/dashboard/extensions-api/navigation#navmenutarget), or to match on
 when writing a `navSections` function.
 
-Note that `insights` is a link rather than a section, but it occupies a top-level
-slot in `sections` and is targeted the same way.
+`insights` is a link rather than a section, but it occupies a top-level slot in
+`sections` and is targeted the same way.
 
 `Insights` (`insights`), `Catalog` (`catalog`), `Sales` (`sales`),
 `Customers` (`customers`), `Marketing` (`marketing`), `System` (`system`),
@@ -282,8 +282,8 @@ slot in `sections` and is targeted the same way.
 The ids of the navigation items nested inside the built-in sections. These are the ids
 to pass as the `items` of a [NavMenuTarget](/reference/dashboard/extensions-api/navigation#navmenutarget).
 
-Note that a section and an item may share an id, as the Customers section and the
-Customers item do. This is why a [NavMenuTarget](/reference/dashboard/extensions-api/navigation#navmenutarget) names the two separately.
+A section and an item may share an id, as the Customers section and the Customers
+item do. This is why a [NavMenuTarget](/reference/dashboard/extensions-api/navigation#navmenutarget) names the two separately.
 
 Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`),
 `OptionGroups` (`option-groups`), `Facets` (`facets`), `Collections` (`collections`),

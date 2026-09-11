@@ -121,8 +121,8 @@ export interface DashboardNavSectionDefinition {
      * @description
      * A predicate evaluated on every nav render to decide whether this section is
      * shown. When it returns false the section and all of its items are hidden. A
-     * section is also hidden once every item inside it is, since it would open onto
-     * nothing.
+     * section is also hidden once every item inside it is, since expanding it would
+     * show nothing.
      *
      * Presentation only, never authorization.
      *

@@ -259,11 +259,11 @@ Use [Dev Mode](/extending-the-dashboard/extending-overview/#dev-mode) or the [Ex
 
 The `isVisible` predicate decides per administrator whether an entry is shown. It receives a [DashboardUserContext](/reference/dashboard/extensions-api/navigation#dashboardusercontext) and is evaluated on every nav render.
 
-Where you declare the predicate depends on whose entry it is. Use `isVisible` directly on the entries your own plugin declares. To reach an entry your plugin did not declare, a built-in section or one belonging to another plugin, attach the predicate from the function form of `navSections`.
+Where you declare the predicate depends on whose entry it is. Your own entries take `isVisible` directly. For a built-in entry, or one belonging to another plugin, attach the predicate from the function form of `navSections`.
 
 ### Reaching another plugin's entries with navSections
 
-The function form of `navSections` runs once, at registration, and sees the fully assembled config. It has no access to the logged-in administrator and does not need one. The `isVisible` predicate it attaches is evaluated later, on every nav render, with the user context.
+The function form of `navSections` runs once, at registration, and sees the fully assembled config. It has no access to the logged-in administrator. The `isVisible` predicate it attaches is evaluated later, on every nav render, with the user context.
 
 This example leaves floor staff with only the point-of-sale section:
 
@@ -282,7 +282,7 @@ defineDashboardExtension({
 
 Entries are named by kind. `sections` holds the ids of the top-level entries, `items` the ids of the entries nested inside them. The two are separate because a section and one of its items may carry the same id, as the built-in Customers section and Customers item do.
 
-The other helper, [setNavVisibility](/reference/dashboard/extensions-api/navigation#setnavvisibility), names the entries to condition instead of the entries to keep:
+The other helper, [setNavVisibility](/reference/dashboard/extensions-api/navigation#setnavvisibility), names the entries the predicate applies to instead of the entries to keep:
 
 ```tsx
 import { BUILT_IN_NAV_SECTION_IDS, setNavVisibility } from '@vendure/dashboard';
@@ -297,15 +297,15 @@ defineDashboardExtension({
 });
 ```
 
-Prefer both over spreading `isVisible` yourself, because a plain spread silently discards a predicate that another plugin already set on the same entry.
+Prefer `setNavVisibility` and `keepOnlyNavEntries` over spreading `isVisible` yourself, because a plain spread silently discards a predicate that another plugin already set on the same entry.
 
 `navSections` is either the array form or the function form, never both. A plugin which declares its own section and also adjusts the assembled menu needs two `defineDashboardExtension` calls. The array form has to run first, so that a route's `navMenuItem.sectionId` has a section to attach to.
 
 An id which matches no entry has no effect, and with `keepOnlyNavEntries` one typo hides every other entry. The dashboard warns about unmatched ids in development. For built-in entries, `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS` remove the possibility.
 
-### Conditioning your own entry with isVisible
+### Setting isVisible on your own entry
 
-When you only need to condition an entry you own, `isVisible` is the shorthand. It is available on nav sections and on route `navMenuItem` entries, and is ANDed with `requiresPermission`: both must pass for the entry to appear.
+When the entry is one you declared, `isVisible` is the shorthand. It is available on nav sections and on route `navMenuItem` entries, and is ANDed with `requiresPermission`: both must pass for the entry to appear.
 
 ```tsx
 defineDashboardExtension({
@@ -320,7 +320,7 @@ defineDashboardExtension({
 });
 ```
 
-On a section, returning `false` hides the section and all of its items. A section is also dropped once every item inside it is hidden, since it would open onto nothing.
+On a section, returning `false` hides the section and all of its items. A section is also dropped once every item inside it is hidden, since expanding it would show nothing.
 
 ### Roles are not channel-scoped, permissions are
 
@@ -333,7 +333,7 @@ const isSellerHere = (ctx: DashboardUserContext) =>
     );
 ```
 
-Note also that `hasPermissions()` has OR semantics despite the plural name. It returns true when the administrator holds ANY of the listed permissions on the active channel, not all of them.
+`hasPermissions()` has OR semantics despite the plural name. It returns true when the administrator holds ANY of the listed permissions on the active channel, not all of them.
 
 ### Predicates must be pure
 
@@ -343,30 +343,28 @@ A `navSections` function runs only once, but it is handed the framework's own se
 
 ### How several plugins compose
 
-`isVisible` predicates are ANDed. When `setNavVisibility` or `keepOnlyNavEntries` add a predicate to an entry that already has one, both are kept and both must pass. The practical rule is that **any plugin can hide an entry and no plugin can force one to appear**. This is also why you should use those helpers rather than spreading `isVisible` yourself: a plain spread replaces whatever another plugin already set, and nothing warns you.
+`isVisible` predicates are ANDed. When `setNavVisibility` or `keepOnlyNavEntries` add a predicate to an entry that already has one, both are kept and both must pass. **Any plugin can hide an entry, and no plugin can force one to appear.**
 
 `navSections` functions are chained in registration order, which follows the order of the `plugins` array in your Vendure config. Each receives the previous one's output. Where two of them rebuild `sections` and disagree about the result, the later one wins.
 
 Registration and modification happen at different times. Every `navSections` array entry and every route's `navMenuItem`, from every plugin, is collected before any `navSections` function runs. A `navSections` function therefore always sees the fully assembled menu, including entries contributed by plugins registered after it. Reordering the `plugins` array does not change which entries it can see.
 
-One consequence is worth stating plainly. `keepOnlyNavEntries` is a whitelist, so it hides entries added by other plugins just as readily as built-in ones:
+`keepOnlyNavEntries` is a whitelist, so it hides entries added by other plugins just as readily as built-in ones:
 
 ```ts
 // Hides 'catalog', 'sales' and so on, but also any section another plugin added.
 navSections: config => keepOnlyNavEntries(config, { sections: ['pos'] }, isFloorStaff),
 ```
 
-That is usually what you want for a locked-down role, since a plugin installed later cannot silently widen what the user sees. If you would rather stay open to other plugins, name their ids alongside your own, or hide the specific built-in sections with `setNavVisibility` instead of keeping only your own. The trade-off is that a section added by a future Vendure release would then be visible until you exclude it.
+A whitelist is usually what you want for a locked-down role, since a plugin installed later cannot widen what the user sees. If you would rather stay open to other plugins, name their ids alongside your own, or hide the specific built-in sections with `setNavVisibility` instead of keeping only your own. The trade-off is that a section added by a future Vendure release would then be visible until you exclude it.
 
 ### This is presentation only, not authorization
 
-None of this is an access control mechanism. Hiding a nav entry only changes what the dashboard renders. An administrator who can call an operation on the Admin API can still call it, whether or not the dashboard shows a link to it. Real access control belongs on the server, in the permissions attached to your GraphQL operations and resolvers.
+Hiding a nav entry changes what the dashboard renders and nothing else. An administrator who can call an operation on the Admin API can still call it, whether or not the dashboard shows a link to it. Real access control belongs on the server, in the permissions attached to your GraphQL operations and resolvers.
 
-### The built-in nav ids
+### Built-in ids across upgrades
 
-The ids used throughout this guide (`catalog`, `sales`, `products`, `administrators` and the rest) are exported as `BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS`. Referring to them through those constants means a changed id keeps working, and a removed one is a compile error. A hard-coded string gives you neither: it just stops matching.
-
-Restructuring is a different matter. A future release could move an item into another section or drop it, and no constant catches that. When you target a built-in entry, re-check the sidebar after upgrading.
+`BUILT_IN_NAV_SECTION_IDS` and `BUILT_IN_NAV_ITEM_IDS` keep working when an id is renamed, and turn a removed id into a compile error. Neither constant covers restructuring: a future release could move an item into another section or drop it. When you target a built-in entry, re-check the sidebar after upgrading.
 
 ## Unauthenticated Routes
 

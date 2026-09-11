@@ -106,7 +106,7 @@ export function resolveNavMenu(
             if (!passesPermission(section, ctx) || !isVisibleFor(section, ctx, pending)) {
                 return false;
             }
-            // A section with no items left is dropped: it would open onto nothing.
+            // A section with no items left is dropped: expanding it would show nothing.
             return 'items' in section ? !!section.items && section.items.length > 0 : true;
         });
 }
