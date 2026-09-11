@@ -1,8 +1,8 @@
 /**
  * @description
  * The ids of the navigation entries which sit directly in `NavMenuConfig.sections`.
- * These are the ids to pass to {@link setNavVisibility} and {@link keepOnlyNavItems},
- * or to match on when writing a `navSections` function.
+ * These are the ids to pass as the `sections` of a {@link NavMenuTarget}, or to match on
+ * when writing a `navSections` function.
  *
  * Note that `insights` is a link rather than a section, but it occupies a top-level
  * slot in `sections` and is targeted the same way.
@@ -27,12 +27,16 @@ export const BUILT_IN_NAV_SECTION_IDS = {
 
 /**
  * @description
- * The ids of the navigation items nested inside the built-in sections.
+ * The ids of the navigation items nested inside the built-in sections. These are the ids
+ * to pass as the `items` of a {@link NavMenuTarget}.
+ *
+ * Note that a section and an item may share an id, as the Customers section and the
+ * Customers item do. This is why a {@link NavMenuTarget} names the two separately.
  *
  * Under `catalog`: `Products` (`products`), `ProductVariants` (`product-variants`),
  * `OptionGroups` (`option-groups`), `Facets` (`facets`), `Collections` (`collections`),
  * `Assets` (`assets`). Under `sales`: `Orders` (`orders`). Under `customers`:
- * `Customers` (`customer-list`), `CustomerGroups` (`customer-groups`). Under `marketing`:
+ * `Customers` (`customers`), `CustomerGroups` (`customer-groups`). Under `marketing`:
  * `Promotions` (`promotions`). Under `system`: `JobQueue` (`job-queue`),
  * `ScheduledTasks` (`scheduled-tasks`), `SettingsStore` (`settings-store`),
  * `ApiKeys` (`api-keys`). Under `settings`: `Sellers` (`sellers`), `Channels` (`channels`),
@@ -57,10 +61,7 @@ export const BUILT_IN_NAV_ITEM_IDS = {
     // sales
     Orders: 'orders',
     // customers
-    // Not 'customers': that is the id of the section this item sits in, and the
-    // visibility helpers match sections and items from one id space, so a shared
-    // id would target both.
-    Customers: 'customer-list',
+    Customers: 'customers',
     CustomerGroups: 'customer-groups',
     // marketing
     Promotions: 'promotions',

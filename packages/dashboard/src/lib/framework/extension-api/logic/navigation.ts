@@ -44,8 +44,7 @@ function registerRoutes(routes?: DashboardRouteDefinition[]) {
             const { sectionId, ...navMenuItemProps } = route.navMenuItem;
             const item: NavMenuItem = {
                 // Spread so that any field added to NavMenuItem passes through without
-                // needing a change here. Field-by-field construction silently dropped
-                // new optional fields such as isVisible.
+                // needing a change here.
                 ...navMenuItemProps,
                 url: route.navMenuItem.url ?? route.path,
                 id: route.navMenuItem.id ?? route.path,

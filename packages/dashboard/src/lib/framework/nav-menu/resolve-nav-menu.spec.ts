@@ -96,6 +96,22 @@ describe('resolveNavMenu - existing behaviour', () => {
         expect(itemIds(result[0])).toEqual(['products']);
     });
 
+    it('filters a section by its own requiresPermission', () => {
+        const result = resolveNavMenu(
+            config([
+                {
+                    id: 'restricted',
+                    title: 'Restricted',
+                    placement: 'top',
+                    requiresPermission: 'Nope',
+                    items: [{ id: 'child', title: 'Child', url: '/c' }],
+                },
+            ]),
+            ctxWith([]),
+        );
+        expect(result).toEqual([]);
+    });
+
     it('drops a section whose items are all filtered out', () => {
         const result = resolveNavMenu(
             config([
@@ -232,7 +248,7 @@ describe('resolveNavMenu - isVisible', () => {
                 { id: 'catalog', title: 'Catalog', url: '/c', placement: 'top' },
                 { id: 'pos', title: 'POS', url: '/pos', placement: 'top' },
             ]),
-            ['catalog'],
+            { sections: ['catalog'] },
             c => !isFloorStaff(c),
         );
 
@@ -247,10 +263,10 @@ describe('resolveNavMenu - isVisible', () => {
         // would appear - so this ordering is what makes the test meaningful.
         const first = setNavVisibility(
             config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ['a'],
+            { sections: ['a'] },
             () => false,
         );
-        const second = setNavVisibility(first, ['a'], () => true);
+        const second = setNavVisibility(first, { sections: ['a'] }, () => true);
 
         expect(resolveNavMenu(second, ctxWith())).toEqual([]);
     });
@@ -282,14 +298,47 @@ describe('resolveNavMenu - isVisible', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
         const hidden = setNavVisibility(
             config([{ id: 'a', title: 'A', url: '/a', placement: 'top' }]),
-            ['a'],
+            { sections: ['a'] },
             () => false,
         );
-        const withBrokenPredicate = setNavVisibility(hidden, ['a'], () => {
+        const withBrokenPredicate = setNavVisibility(hidden, { sections: ['a'] }, () => {
             throw new Error('boom');
         });
 
         expect(resolveNavMenu(withBrokenPredicate, ctxWith())).toEqual([]);
         warn.mockRestore();
+    });
+});
+
+// The administrator custom fields arrive on a second request. Until they do, an entry
+// with a predicate cannot be resolved, but every other entry can and should paint.
+describe('resolveNavMenu - userContextPending', () => {
+    const pendingConfig = () =>
+        config([
+            { id: 'plain', title: 'Plain', url: '/p', placement: 'top' },
+            { id: 'conditional', title: 'Conditional', url: '/c', placement: 'top', isVisible: () => true },
+            {
+                id: 'section',
+                title: 'Section',
+                placement: 'top',
+                items: [
+                    { id: 'plain-item', title: 'Plain item', url: '/pi' },
+                    { id: 'conditional-item', title: 'Conditional item', url: '/ci', isVisible: () => true },
+                ],
+            },
+        ]);
+
+    it('withholds only the entries carrying a predicate', () => {
+        const result = resolveNavMenu(pendingConfig(), ctxWith(), { userContextPending: true });
+
+        expect(result.map(s => s.id)).toEqual(['plain', 'section']);
+        expect(itemIds(result[1])).toEqual(['plain-item']);
+    });
+
+    it('shows them once the context has loaded', () => {
+        const result = resolveNavMenu(pendingConfig(), ctxWith(), { userContextPending: false });
+
+        expect(result.map(s => s.id)).toEqual(['conditional', 'plain', 'section']);
+        expect(itemIds(result[2])).toEqual(['conditional-item', 'plain-item']);
     });
 });

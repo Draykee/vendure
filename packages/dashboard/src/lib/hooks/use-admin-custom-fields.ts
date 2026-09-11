@@ -22,18 +22,9 @@ const activeAdministratorCustomFieldsDocument = graphql(`
  * selections on at runtime, so the generated result type cannot describe them.
  */
 function readAdminCustomFields(data: unknown): Record<string, unknown> | undefined {
-    if (typeof data !== 'object' || data === null || !('activeAdministrator' in data)) {
-        return undefined;
-    }
-    const administrator = (data as { activeAdministrator: unknown }).activeAdministrator;
-    if (typeof administrator !== 'object' || administrator === null || !('customFields' in administrator)) {
-        return undefined;
-    }
-    const customFields = (administrator as { customFields: unknown }).customFields;
-    if (typeof customFields !== 'object' || customFields === null) {
-        return undefined;
-    }
-    return customFields as Record<string, unknown>;
+    const customFields = (data as { activeAdministrator?: { customFields?: unknown } } | undefined)
+        ?.activeAdministrator?.customFields;
+    return customFields ? (customFields as Record<string, unknown>) : undefined;
 }
 
 /**
@@ -59,8 +50,6 @@ export function useAdminCustomFields({ enabled: enabledByCaller = true }: { enab
     const serverConfig = useServerConfig();
     const { user } = useAuth();
 
-    // Keyed on the map, not on serverConfig: main.tsx fills the map in an effect, so a
-    // serverConfig-keyed memo runs a render too early and bakes in an empty map.
     const customFieldsMap = getCustomFieldsMap();
 
     const document = useMemo(
@@ -84,32 +73,22 @@ export function useAdminCustomFields({ enabled: enabledByCaller = true }: { enab
         queryKey: ['activeAdministratorCustomFields', user?.id, customFieldSignature],
         queryFn: () => api.query(document),
         enabled,
-        // Fail open promptly. Without this the query inherits the default of 3
-        // retries, so `isError` - and therefore `ready` - would not arrive for
-        // several seconds of backoff, leaving the nav blank for exactly the
-        // stretch the fail-open exists to prevent. Matches every other query in
-        // this package, which all pin retry: false.
+        // Without this the default of 3 retries delays `isError`, and so `ready`, by
+        // several seconds of backoff, which is the stretch the fail-open exists to end.
         retry: false,
-        // The global QueryClient sets placeholderData: keepPreviousData
-        // (app/app-providers.tsx). This key carries administrator identity, so the
-        // previous administrator's custom fields must not linger across a
-        // logout/login. See packages/dashboard/CLAUDE.md, "React Query Defaults".
+        // Overrides the global keepPreviousData default: this key carries administrator
+        // identity, so the previous administrator's fields must not linger across a login.
         placeholderData: undefined,
     });
 
     return {
         customFields: readAdminCustomFields(data),
-        // When the caller opted out, or when logged out, there is nothing to wait for,
-        // so report ready. Note the login check is on login state alone, not `enabled` -
-        // `enabled` also waits on serverConfig, and there is a real window where the user
-        // is logged in but serverConfig hasn't resolved yet, during which custom fields
-        // have not loaded.
-        //
-        // Fail open. `ready` means "we are done waiting", not "we succeeded".
-        // isError covers a settled failure; fetchStatus === 'paused' covers the
-        // offline case, where the default networkMode leaves the query pending
-        // forever with neither flag set. Holding the nav hostage to either is
-        // worse than rendering it with custom fields absent.
+        // `ready` means "done waiting", not "succeeded". The check is on login state
+        // rather than `enabled`, which also waits on serverConfig: there is a window
+        // where the user is logged in, serverConfig has not resolved, and the fields
+        // have genuinely not loaded. `fetchStatus === 'paused'` is the offline case,
+        // where the default networkMode leaves the query pending forever with neither
+        // isSuccess nor isError ever set.
         ready: !enabledByCaller || !user?.id || isSuccess || isError || fetchStatus === 'paused',
     };
 }

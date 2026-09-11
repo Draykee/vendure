@@ -46,6 +46,8 @@ describe('buildDashboardUserContext', () => {
 
     it('detects the SuperAdmin role by code', () => {
         const ctx = buildDashboardUserContext({
+            // The literal wire value, pinned on purpose: this is the code the server
+            // ships the SuperAdmin role with.
             administrator: administrator([role('__super_admin_role__')]),
             channels: [],
             activeChannel: undefined,

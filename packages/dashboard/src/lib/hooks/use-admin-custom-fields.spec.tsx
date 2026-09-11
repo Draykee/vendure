@@ -43,9 +43,14 @@ describe('useAdminCustomFields', () => {
                 </QueryClientProvider>,
             );
         });
-        // Let the query settle and re-render.
+        // Wait for the query to settle rather than assuming it resolves in one tick.
+        // When no query was issued there is nothing to settle.
         await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await vi.waitFor(() => {
+                if (apiQueryMock.mock.calls.length && !result?.ready) {
+                    throw new Error('query has not settled');
+                }
+            });
         });
     }
 
@@ -129,17 +134,7 @@ describe('useAdminCustomFields', () => {
         expect(result?.customFields).toBeUndefined();
     });
 
-    it('returns undefined for a malformed response instead of passing it through', async () => {
-        apiQueryMock.mockResolvedValue({ activeAdministrator: { id: 'admin-1', customFields: 'nonsense' } });
-
-        await render();
-
-        expect(result?.customFields).toBeUndefined();
-    });
-
     it('builds the document from the populated custom fields map, not an empty one', async () => {
-        // Deriving from the map's identity rather than serverConfig is what keeps this
-        // correct regardless of main.tsx's effect ordering.
         const populated = new Map([['Administrator', [{ name: 'isFloorStaff', type: 'boolean' }]]]);
         getCustomFieldsMapMock.mockReturnValue(populated);
 

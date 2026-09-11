@@ -2,10 +2,7 @@ import type { DashboardUserContext } from '../user-context/dashboard-user-contex
 
 import { NavMenuConfig, NavMenuItem, NavMenuSection } from './nav-menu-extensions.js';
 
-/**
- * Sorts by the optional `order` prop ascending, then alphabetically by title.
- * Ported unchanged from nav-main.tsx.
- */
+/** Sorts by the optional `order` prop ascending, then alphabetically by title. */
 function sortByOrder<T extends { order?: number; title: string }>(a: T, b: T) {
     const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
     const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
@@ -41,19 +38,25 @@ export function warnOnce(id: string, message: string) {
 }
 
 /**
- * @description
  * Clears the once-per-key warning dedup state. Intended for tests, so that a
  * suite exercising the same failing entry twice sees a warning each time.
- *
- * @since 3.8.0
  */
 export function resetNavMenuWarnings() {
     warnedIds.clear();
 }
 
-function isVisibleFor(item: NavMenuItem | NavMenuSection, ctx: DashboardUserContext): boolean {
+function isVisibleFor(
+    item: NavMenuItem | NavMenuSection,
+    ctx: DashboardUserContext,
+    userContextPending: boolean,
+): boolean {
     if (!item.isVisible) {
         return true;
+    }
+    // The context is still loading, so the predicate would read an incomplete one.
+    // Only the entries which actually carry a predicate wait; the rest paint at once.
+    if (userContextPending) {
+        return false;
     }
     try {
         return item.isVisible(ctx);
@@ -76,31 +79,34 @@ function isVisibleFor(item: NavMenuItem | NavMenuSection, ctx: DashboardUserCont
  *
  * Returns entries of both placements in one pass; callers partition by `placement`.
  *
+ * Pass `userContextPending` while `ctx` is still loading: entries carrying an
+ * `isVisible` predicate are then withheld, rather than shown and hidden a moment later.
+ *
  * @since 3.8.0
  */
 export function resolveNavMenu(
     config: NavMenuConfig,
     ctx: DashboardUserContext,
+    options: { userContextPending?: boolean } = {},
 ): Array<NavMenuSection | NavMenuItem> {
+    const pending = options.userContextPending ?? false;
     return config.sections
         .slice()
         .sort(sortByOrder)
         .map(section => {
             if ('items' in section) {
                 const items = (section.items ?? [])
-                    .filter(item => passesPermission(item, ctx) && isVisibleFor(item, ctx))
+                    .filter(item => passesPermission(item, ctx) && isVisibleFor(item, ctx, pending))
                     .sort(sortByOrder);
                 return { ...section, items };
             }
             return section;
         })
         .filter(section => {
-            if (!isVisibleFor(section, ctx)) {
+            if (!passesPermission(section, ctx) || !isVisibleFor(section, ctx, pending)) {
                 return false;
             }
-            if ('items' in section) {
-                return !!section.items && section.items.length > 0;
-            }
-            return passesPermission(section as NavMenuItem, ctx);
+            // A section with no items left is dropped: it would open onto nothing.
+            return 'items' in section ? !!section.items && section.items.length > 0 : true;
         });
 }

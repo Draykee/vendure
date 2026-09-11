@@ -68,7 +68,8 @@ export interface DashboardAdministrator {
     firstName: string;
     lastName: string;
     emailAddress: string;
-    user: { id: string; identifier: string; roles: DashboardUserRole[] };
+    /** The User record behind this administrator. Roles are on `DashboardUserContext.roles`. */
+    user: { id: string; identifier: string };
     /**
      * Administrator custom fields. Undefined until they have loaded; the framework
      * does not evaluate visibility rules before then, so rules never observe the
@@ -171,7 +172,6 @@ export function buildDashboardUserContext(input: BuildDashboardUserContextInput)
               user: {
                   id: input.administrator.user.id,
                   identifier: input.administrator.user.identifier,
-                  roles,
               },
               ...(input.customFields ? { customFields: input.customFields } : {}),
           }

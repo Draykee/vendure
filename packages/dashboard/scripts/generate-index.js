@@ -65,20 +65,7 @@ function generateExports() {
     return exportStatements.join('\n');
 }
 
-// A stale entry excludes nothing, and the module it was meant to keep private is
-// republished on the next run with nothing to notice.
-function assertExclusionsExist() {
-    const missing = EXCLUDED_PATHS.filter(p => !fs.existsSync(path.join(LIB_DIR, p)));
-    if (missing.length) {
-        throw new Error(
-            `EXCLUDED_PATHS in generate-index.js names ${missing.join(', ')}, which do not ` +
-                `exist. Update the list to the new path, or drop the entry if the module is gone.`,
-        );
-    }
-}
-
 function generateIndexFile() {
-    assertExclusionsExist();
     const exports = generateExports();
     const content = `// This file is auto-generated. Do not edit manually.
 

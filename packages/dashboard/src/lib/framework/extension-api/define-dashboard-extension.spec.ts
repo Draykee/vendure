@@ -17,6 +17,7 @@ import {
 } from '../nav-menu/nav-menu-extensions.js';
 import { setNavVisibility } from '../nav-menu/nav-menu-helpers.js';
 import { globalRegistry } from '../registry/global-registry.js';
+import { buildDashboardUserContext } from '../user-context/dashboard-user-context.js';
 
 import { getDashboardCustomProvidersRegistry, renderProviders } from './custom-providers.js';
 import {
@@ -351,15 +352,21 @@ describe('defineDashboardExtension - navSections', () => {
     // form runs after every array-form registration, so the predicate lands on the
     // assembled config and is still in the registry for NavMain to find.
     it('stores a predicate attached by the function form of navSections', () => {
-        const predicate = () => false;
+        const ctx = buildDashboardUserContext({
+            administrator: undefined,
+            channels: undefined,
+            activeChannel: undefined,
+            customFields: undefined,
+            hasPermissions: () => true,
+        });
         defineDashboardExtension({ navSections: [{ id: 'reports', title: 'Reports' }] });
         defineDashboardExtension({
-            navSections: config => setNavVisibility(config, ['reports'], predicate),
+            navSections: config => setNavVisibility(config, { sections: ['reports'] }, () => false),
         });
         executeDashboardExtensionCallbacks();
 
         const reports = getNavMenuConfig().sections.find(section => section.id === 'reports');
-        expect(reports?.isVisible).toBeTypeOf('function');
+        expect(reports?.isVisible?.(ctx)).toBe(false);
     });
 });
 

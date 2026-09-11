@@ -91,10 +91,7 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
     const router = useRouter();
     const routerState = useRouterState();
     // With no isVisible predicate anywhere, the resolved output cannot depend on
-    // administrator custom fields. That makes this the signal for both the request and the
-    // render gate: a vanilla install neither fetches the custom fields nor waits on them,
-    // which would otherwise mean an extra Admin API round trip and a blank sidebar on
-    // every page load for no benefit.
+    // administrator custom fields, so a vanilla install skips that request entirely.
     const hasUserDependentRules = React.useMemo(
         () =>
             items.some(
@@ -162,10 +159,12 @@ export function NavMain({ items }: Readonly<{ items: Array<NavMenuSection | NavM
 
     const resolved = React.useMemo(
         () =>
-            // Do not evaluate visibility rules before the user context is fully
-            // loaded: rules reading customFields would briefly see them absent and
-            // the menu would flicker.
-            hasUserDependentRules && !ready ? [] : resolveNavMenu({ sections: items }, ctx),
+            resolveNavMenu({ sections: items }, ctx, {
+                // Withhold only the entries with a predicate until the context has
+                // loaded: a rule reading customFields would otherwise briefly see them
+                // absent. Everything else paints straight away.
+                userContextPending: hasUserDependentRules && !ready,
+            }),
         [items, ctx, ready, hasUserDependentRules],
     );
 

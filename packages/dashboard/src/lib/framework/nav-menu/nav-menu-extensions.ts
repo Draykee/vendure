@@ -3,6 +3,8 @@ import type { DashboardUserContext } from '../user-context/dashboard-user-contex
 
 import { globalRegistry } from '../registry/global-registry.js';
 
+import { BUILT_IN_NAV_ITEM_IDS, BUILT_IN_NAV_SECTION_IDS } from './nav-menu-ids.js';
+
 // Define the placement options for navigation sections
 export type NavMenuSectionPlacement = 'top' | 'bottom';
 
@@ -49,13 +51,13 @@ export type NavigationShortcut =
 
 /** The shortcuts reserved by the Dashboard's built-in navigation items. */
 export const BUILT_IN_NAVIGATION_SHORTCUTS = {
-    a: 'assets',
-    c: 'customer-list',
-    d: 'insights',
-    m: 'promotions',
-    o: 'orders',
-    p: 'products',
-    s: 'global-settings',
+    a: BUILT_IN_NAV_ITEM_IDS.Assets,
+    c: BUILT_IN_NAV_ITEM_IDS.Customers,
+    d: BUILT_IN_NAV_SECTION_IDS.Insights,
+    m: BUILT_IN_NAV_ITEM_IDS.Promotions,
+    o: BUILT_IN_NAV_ITEM_IDS.Orders,
+    p: BUILT_IN_NAV_ITEM_IDS.Products,
+    s: BUILT_IN_NAV_ITEM_IDS.GlobalSettings,
 } as const satisfies Partial<Record<NavigationShortcut, string>>;
 
 /** A navigation shortcut which can be assigned by a Dashboard extension. */

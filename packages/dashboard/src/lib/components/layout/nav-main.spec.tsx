@@ -151,8 +151,8 @@ describe('NavMain', () => {
         resetNavMenuWarnings();
     });
 
-    // Master-equivalence: with no isVisible predicates, NavMain must render exactly the
-    // entries a vanilla install has always shown, sorted by `order`.
+    // With no isVisible predicate anywhere, NavMain renders exactly the entries a
+    // vanilla install shows, sorted by `order`.
     it('renders a vanilla config in order, top placement before bottom', () => {
         expect(getRenderedNavIds(render(vanillaConfig()))).toEqual(VANILLA_IDS);
     });
@@ -198,27 +198,32 @@ describe('NavMain', () => {
         expect(renderedIds).toEqual(['insights', 'settings', 'channels']);
     });
 
-    // The readiness gate: rules that read administrator custom fields must not be
-    // evaluated before those custom fields have loaded, so nothing is rendered at all.
-    it('renders nothing while the user context is not ready and a predicate is present', () => {
+    // The readiness gate: a rule reading administrator custom fields must not run before
+    // they have loaded. Only the entry carrying the rule waits; the rest still render.
+    it('withholds only the entry carrying a predicate while the user context is not ready', () => {
         const items = vanillaConfig();
         const catalog = items.find(entry => entry.id === 'catalog') as NavMenuSection;
         catalog.isVisible = () => true;
 
-        expect(getRenderedNavIds(render(items, { ready: false }))).toEqual([]);
+        const renderedIds = getRenderedNavIds(render(items, { ready: false }));
+
+        expect(renderedIds).not.toContain('catalog');
+        expect(renderedIds).toEqual(['insights', 'sales', 'orders', 'settings', 'channels']);
     });
 
-    it('renders nothing while the user context is not ready and a nested item carries a predicate', () => {
+    it('withholds only the nested item carrying a predicate while the user context is not ready', () => {
         const items = vanillaConfig();
         const sales = items.find(entry => entry.id === 'sales') as NavMenuSection;
         (sales.items ?? [])[0].isVisible = () => true;
 
-        expect(getRenderedNavIds(render(items, { ready: false }))).toEqual([]);
+        const renderedIds = getRenderedNavIds(render(items, { ready: false }));
+
+        // 'sales' has only the one item, so it drops out with it; nothing else does.
+        expect(renderedIds).toEqual(['insights', 'catalog', 'products', 'facets', 'settings', 'channels']);
     });
 
-    // The gate is scoped: a vanilla install has no user-dependent rules, so its output
-    // cannot depend on the user context and must never be withheld. Without this,
-    // every page load would start with a blank sidebar.
+    // A vanilla install has no user-dependent rules, so its output cannot depend on the
+    // user context and nothing is ever withheld.
     it('renders a vanilla config even while the user context is not ready', () => {
         expect(getRenderedNavIds(render(vanillaConfig(), { ready: false }))).toEqual(VANILLA_IDS);
     });
